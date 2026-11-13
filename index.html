@@ -408,10 +408,10 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
         </div>
         <div class="card">
           <h2>Расчёт</h2>
-          <p class="sub">Хранится в этом браузере</p>
+          <p class="sub">Расход в долларах пересчитывается в тенге по курсу Нацбанка РК на каждый день отдельно</p>
           <div class="form">
-            <label for="cur">Валюта кабинета Meta<select class="field" id="cur"><option value="USD">Доллары ($)</option><option value="KZT">Тенге (₸)</option></select></label>
-            <label for="rate">Курс доллара, ₸<input class="field" id="rate" type="number" min="1" step="1" style="width:110px"></label>
+            <div id="fxInfo" style="font-size:13px;max-width:420px"></div>
+            <span hidden><select id="cur"><option value="USD">USD</option><option value="KZT">KZT</option></select><input id="rate" type="number"></span>
             <label for="target">Целевая цена записи, ₸<input class="field" id="target" type="number" min="500" step="500" style="width:140px"></label>
           </div>
         </div>
@@ -462,9 +462,9 @@ function errorCopy(e){const m=String(e?.message||e||"");
 async function load(){
   const b=$("#refresh");b.classList.add("spin");
   try{
-    const [{data,error},th]=await Promise.all([SB.rpc("ad_panel",{p_from:S.from,p_to:S.to}),SB.rpc("ad_panel_thumbs")]);
+    const [{data,error},th,fx]=await Promise.all([SB.rpc("ad_panel",{p_from:S.from,p_to:S.to}),SB.rpc("ad_panel_thumbs"),SB.rpc("ad_panel_fx",{p_from:S.from,p_to:S.to})]);
     if(error)throw error;
-    S.thumbs=(th&&th.data)||{};
+    S.thumbs=(th&&th.data)||{};S.fx=(fx&&fx.data&&fx.data.latest)?fx.data:null;
     const d=data||{};
     Object.assign(S,{perf:d.perf||[],daily:d.daily||[],codes:d.codes||[],stages:d.stages||[],log:d.log||[],chats:d.chats||[],unmatched:d.unmatched||[],channels:d.channels||[],loaded:true});
     if(S.from<TRACK_FROM)notice("","Коды и записи считаются с 13.11.","Расход до этой даты показан, а чаты с кодом и записи — нет, поэтому доли и цена записи за этот период занижены. Для честных цифр выберите даты с 13.11.");else notice();
@@ -474,7 +474,7 @@ async function load(){
 
 function trackedDays(){const f=S.from>TRACK_FROM?S.from:TRACK_FROM;return Math.max(0,Math.round((new Date(S.to)-new Date(f))/864e5)+1)}
 function enrich(r){
-  const spendK=Number(r.spend)*rate(),conv=Number(r.conversations),leads=Number(r.leads),booked=Number(r.booked);
+  const spendK=(S.fx&&S.fx.kzt&&S.fx.kzt[r.code]!=null)?Number(S.fx.kzt[r.code]):Number(r.spend)*rate(),conv=Number(r.conversations),leads=Number(r.leads),booked=Number(r.booked);
   const cpb=booked?spendK/booked:null,cpc=conv?spendK/conv:null,T=Number(S.target)||10000;let v,why,score;
   if(trackedDays()<3){v=["watch","Мало данных"];why="Нужно 3+ дня данных";score=1}
   else if(booked===0&&spendK<T){v=["watch","Мало данных"];why="Потрачено меньше цены одной записи";score=1}
@@ -511,7 +511,7 @@ function renderOverview(R){
   const days=Math.round((new Date(S.to)-new Date(S.from))/864e5)+1;
   const k=(l,v,s,cls="")=>`<div class="kpi ${cls}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
   $("#kpis").innerHTML=
-    k("Расход",money(spend),`${days} ${plural(days,"день","дня","дней")}`+(S.cur==="USD"?` · $${fmt(spend/rate())}`:""))+
+    k("Расход",money(spend),`${days} ${plural(days,"день","дня","дней")}`+(S.fx?` · $${fmt(sum(R,"spend"))} · курс ${String(S.fx.avg).replace(".",",")}`:(S.cur==="USD"?` · $${fmt(spend/rate())}`:"")))+
     k("Переписки",fmt(conv),conv?`${money(spend/conv)} за переписку`:"по данным Meta")+
     k("С кодом",fmt(leads),conv?`${Math.round(leads/conv*100)}% переписок`:"текст шаблона в чате")+
     k("Записались",fmt(booked),leads?`${Math.round(booked/leads*100)}% чатов с кодом`:"по amoCRM","key")+
@@ -541,7 +541,7 @@ function renderOverview(R){
 function renderChart(){
   const D=S.daily,W=780,H=230,pl=58,pr=36,pt=14,pb=28;
   if(!D.length){$("#chart").innerHTML=`<div class="empty">Нет данных за период.</div>`;return}
-  const sp=D.map(d=>Number(d.spend)*rate()),bk=D.map(d=>Number(d.booked||0)),ld=D.map(d=>Number(d.leads||0));
+  const sp=D.map(d=>(S.fx&&S.fx.daily&&S.fx.daily[d.day]!=null)?Number(S.fx.daily[d.day]):Number(d.spend)*rate()),bk=D.map(d=>Number(d.booked||0)),ld=D.map(d=>Number(d.leads||0));
   const nice=m=>{if(m<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(m)));const f=m/p;return(f<=1?1:f<=2?2:f<=5?5:10)*p};
   const ms=nice(Math.max(...sp)),ml=Math.max(4,Math.ceil(Math.max(...ld,...bk,1)/4)*4);
   const bw=(W-pl-pr)/D.length,y=(v,m)=>pt+(H-pt-pb)*(1-v/m);let g="";
@@ -601,6 +601,7 @@ function renderCodes(){
 }
 
 function renderSetup(){
+  const fi=$("#fxInfo");if(fi)fi.innerHTML=S.fx?`<b>Курс доллара: ${String(S.fx.latest.rate).replace(".",",")} ₸</b> на ${S.fx.latest.day.slice(8,10)}.${S.fx.latest.day.slice(5,7)}<div class="dim" style="font-size:12px;margin-top:3px">Обновляется автоматически каждый день. Средний курс за выбранный период: ${String(S.fx.avg).replace(".",",")} ₸. Расход каждого дня остаётся по курсу того дня.</div>`:`<span class="dim">Курс ещё не загружен, используется ${S.rate} ₸.</span>`;
   $("#stages").innerHTML=S.stages.length?[...S.stages].sort((a,b)=>stageLabel(a.stage_name,a.status_id).localeCompare(stageLabel(b.stage_name,b.status_id))).map(s=>{const name=stageLabel(s.stage_name,s.status_id);
     return `<div class="li"><div class="grow"><b>${esc(name)}</b><div class="dim" style="font-size:12px">сделок сейчас: ${s.n}</div></div>
     <select class="field" data-stage="${s.pipeline_id}:${s.status_id}" data-name="${esc(name)}" aria-label="Значение этапа ${esc(name)}">
