@@ -191,6 +191,29 @@ td .meta{font-size:12px;color:var(--muted);white-space:normal;max-width:320px;ma
 }
 @media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis .kpi:last-child{grid-column:1/-1}.kpi .v{font-size:21px}.top h1{flex-basis:100%}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+#sortSel{display:none}
+@media (max-width:700px){
+  #sortSel{display:block}
+  .tbl{margin:0;padding:0;overflow:visible}
+  #ads,#chats{min-width:0!important}
+  #ads thead,#chats thead{display:none}
+  #ads tbody tr,#chats tbody tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px;padding:14px 0;border-bottom:1px solid var(--line)}
+  #chats tbody tr{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #ads tbody tr:last-child,#chats tbody tr:last-child{border-bottom:0}
+  #ads td,#chats td{border:0;padding:0;text-align:left;white-space:normal}
+  #ads td:first-child,#ads td.full,#chats td:nth-child(2),#ads td[colspan],#chats td[colspan]{grid-column:1/-1}
+  #chats td:first-child{grid-column:1/-1;color:var(--muted);font-size:12px}
+  #ads td[data-l]::before,#chats td[data-l]::before{content:attr(data-l);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:1px}
+  tbody tr:hover td{background:none}
+  #chats .chip,#ads .chip{white-space:normal}
+  td .ad,td .meta{max-width:none}
+  .why{margin-left:0;max-width:none;display:inline;margin-left:8px}
+  .nav a .cnt{position:static;margin:0}
+  .nav a{flex-direction:row;gap:5px}
+  .nav a .lbl{display:none}
+  .nav a[aria-current="page"] .lbl{display:inline;font-size:13px}
+}
 </style>
 <style>
 .login{min-height:100%;display:grid;place-items:center;padding-block:40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--bg)}
@@ -266,6 +289,7 @@ td .meta{font-size:12px;color:var(--muted);white-space:normal;max-width:320px;ma
         <div class="card">
           <div class="toolbar">
             <input class="field search" id="q" type="search" placeholder="Поиск: название, код, аудитория" aria-label="Поиск объявлений">
+            <select class="field" id="sortSel" aria-label="Сортировка"><option value="spendK">Сначала дорогие</option><option value="booked">Больше записей</option><option value="leads">Больше чатов с кодом</option><option value="conversations">Больше переписок</option></select>
             <div class="seg" role="group" aria-label="Решение" id="vfilter">
               <button data-f="" aria-pressed="true">Все</button><button data-f="scale">Масштабировать</button><button data-f="fix">Пересмотреть</button><button data-f="off">Отключить</button>
             </div>
@@ -470,20 +494,20 @@ function renderAds(R){
   document.querySelectorAll("#ads th").forEach(th=>th.dataset.k===sk?th.setAttribute("aria-sort",dir>0?"ascending":"descending"):th.removeAttribute("aria-sort"));
   $("#ads tbody").innerHTML=A.length?A.map(r=>`<tr>
     <td><div class="ad">${esc(r.name)}</div><div class="meta"><span class="code">${esc(r.code)}</span> ${esc(r.adset_name||"")} · ${esc(r.campaign_name||"")}</div></td>
-    <td>${money(r.spendK)}</td><td>${fmt(r.conversations)}</td><td>${r.cpc==null?'<span class="dim">—</span>':money(r.cpc)}</td>
-    <td>${fmt(r.leads)}</td><td><b>${fmt(r.booked)}</b></td><td>${r.cpb==null?'<span class="dim">—</span>':money(r.cpb)}</td>
-    <td><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span><span class="why">${esc(r.why)}</span></td></tr>`).join("")
+    <td data-l="Расход">${money(r.spendK)}</td><td data-l="Переписки">${fmt(r.conversations)}</td><td data-l="Цена переписки">${r.cpc==null?'<span class="dim">—</span>':money(r.cpc)}</td>
+    <td data-l="С кодом">${fmt(r.leads)}</td><td data-l="Записались"><b>${fmt(r.booked)}</b></td><td data-l="Цена записи">${r.cpb==null?'<span class="dim">—</span>':money(r.cpb)}</td>
+    <td class="full"><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span><span class="why">${esc(r.why)}</span></td></tr>`).join("")
     :`<tr><td colspan="8"><div class="empty"><b>Ничего не найдено</b>Измените период, врача или поиск.</div></td></tr>`;
   $("#adsNote").textContent=`Решение считается от целевой цены записи ${money(S.target)}, её можно изменить в «Настройке». Показаны объявления с расходом или чатами за период.`;
 }
 
 function renderChats(){
   const C=S.chats.filter(c=>inFilter(c.ad_code));
-  $("#chats tbody").innerHTML=C.length?C.map(c=>{const st=c.status_id?stageLabel(c.stage_name,c.status_id).replace(/^[^·]+· /,""):(/^[АБВГ]/.test(c.ad_code)?"amoCRM Ақтау не подключён":"Сделки ещё нет");
+  $("#chats tbody").innerHTML=C.length?C.map(c=>{const st=c.status_id?stageLabel(c.stage_name,c.status_id).replace(/^[^·]+· /,""):(/^[АБВГ]/.test(c.ad_code)?"CRM не подключён":"Сделки ещё нет");
     const cls=c.booked_at?"booked":Number(c.status_id)===143?"lost":"watch";
     return `<tr><td class="l">${dt(c.first_message_at)}</td>
     <td class="l"><div class="ad">${esc(c.name)}</div><div class="meta"><span class="code">${esc(c.ad_code)}</span> ${esc(c.adset_name||"")}</div></td>
-    <td class="mono">•••• ${esc(c.tail)}</td><td><span class="chip ${cls}">${esc(st)}</span></td></tr>`}).join("")
+    <td class="mono" data-l="Телефон">•••• ${esc(c.tail)}</td><td data-l="Этап"><span class="chip ${cls}">${esc(st)}</span></td></tr>`}).join("")
     :`<tr><td colspan="4"><div class="empty"><b>Чатов с кодом за период нет</b>Они появятся, когда клиент отправит текст шаблона из объявления.</div></td></tr>`;
   const BR={ALA:["ala","Алматы"],SCO:["akt","Ақтау"],CIT:["cit","Шымкент"]};
   const fb=S.doctor.startsWith("br:")?S.doctor.slice(3):(S.doctor.startsWith("g:")?(GROUPS.find(g=>g.id===S.doctor.slice(2))||{}).br:"");
@@ -525,6 +549,7 @@ document.querySelectorAll("#presets button").forEach(b=>b.addEventListener("clic
   Object.assign(S,{from:f,to:t,preset:"custom"});store.set("preset","custom");store.set("from",f);store.set("to",t);render();load()}));
 $("#doctor").addEventListener("change",e=>{S.doctor=e.target.value;store.set("doctor",S.doctor);render()});
 $("#refresh").addEventListener("click",load);
+$("#sortSel").addEventListener("change",e=>{S.sort={k:e.target.value,dir:-1};renderAds(rows())});
 $("#q").addEventListener("input",e=>{S.q=e.target.value;renderAds(rows())});
 document.querySelectorAll("#vfilter button").forEach(b=>b.addEventListener("click",()=>{S.vf=b.dataset.f;document.querySelectorAll("#vfilter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderAds(rows())}));
 document.querySelectorAll("#ads th").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.k;S.sort={k,dir:S.sort.k===k?-S.sort.dir:(k==="name"?1:-1)};renderAds(rows())}));
