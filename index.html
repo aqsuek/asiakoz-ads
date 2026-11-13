@@ -295,6 +295,13 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
 .th .play::after{content:"";position:absolute;left:9px;top:6px;border-left:7px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent}
 .th.none::after{content:"";position:absolute;inset:0;margin:auto;width:14px;height:14px;border-radius:3px;border:2px solid var(--line)}
 </style>
+<style>
+#pv{position:fixed;z-index:60;width:270px;border-radius:18px;overflow:hidden;background:var(--nav);box-shadow:0 24px 60px rgba(0,0,0,.35);pointer-events:none;opacity:0;transform:scale(.96);transition:opacity .12s,transform .12s}
+#pv.on{opacity:1;transform:none}
+#pv img,#pv video{display:block;width:100%;max-height:480px;object-fit:contain;background:var(--nav)}
+#pv .cap{color:var(--nav-ink);font-size:12px;padding:8px 12px;text-align:center}
+@media (hover:none){#pv{display:none}}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -556,7 +563,8 @@ function renderChart(){
 
 function thumb(code,big){const t=(S.thumbs||{})[code];if(!t||!t.t)return `<span class="th ${big?"big":""} none"></span>`;
   const img=`<img src="${esc(t.t)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('none');this.remove()">${t.v?'<i class="play"></i>':""}`;
-  return t.p?`<a class="th ${big?"big":""}" href="${esc(t.p)}" target="_blank" rel="noopener" title="${t.v?"Смотреть видео в Meta":"Открыть объявление в Meta"}">${img}</a>`:`<span class="th ${big?"big":""}">${img}</span>`}
+  const d=`data-pv="${esc(t.t)}" data-vid="${esc(t.s||"")}" data-isv="${t.v?1:0}"`;
+  return t.p?`<a class="th ${big?"big":""}" ${d} href="${esc(t.p)}" target="_blank" rel="noopener" aria-label="${t.v?"Смотреть видео в Meta":"Открыть объявление в Meta"}">${img}</a>`:`<span class="th ${big?"big":""}" ${d}>${img}</span>`}
 function renderAds(R){
   const q=S.q.trim().toLowerCase();
   let A=R.filter(r=>r.spendK>0||r.leads>0);
@@ -639,6 +647,27 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-copy
 document.addEventListener("change",async e=>{const s=e.target.closest("[data-stage]");if(!s)return;const[p,st]=s.dataset.stage.split(":");
   try{const{error}=await SB.rpc("ad_panel_set_stage",{p_pipeline:Number(p),p_status:Number(st),p_name:s.dataset.name||null,p_kind:s.value||null});if(error)throw error;
     notice("ok","Сохранено.","Новые смены этапа считаются по этой разметке.")}catch(err){const[t,x]=errorCopy(err);notice("bad",t,x)}});
+
+// hover preview: enlarged creative; plays the video when a file link is available
+(function(){
+  const pv=document.createElement("div");pv.id="pv";document.body.appendChild(pv);
+  let cur=null;
+  function hide(){cur=null;pv.classList.remove("on");const v=pv.querySelector("video");if(v){v.pause();v.removeAttribute("src");v.load();}}
+  document.addEventListener("mouseover",e=>{
+    const th=e.target.closest&&e.target.closest(".th[data-pv]");
+    if(!th){if(cur&&!(e.target.closest&&e.target.closest(".th")))hide();return}
+    if(th===cur)return;cur=th;
+    const src=th.dataset.vid,isv=th.dataset.isv==="1";
+    pv.innerHTML=src?`<video src="${esc(src)}" poster="${esc(th.dataset.pv)}" autoplay muted loop playsinline></video>`
+      :`<img src="${esc(th.dataset.pv)}" alt="" referrerpolicy="no-referrer">`+(isv?`<div class="cap">Нажмите, чтобы посмотреть видео в Meta</div>`:"");
+    const r=th.getBoundingClientRect(),W=270,H=isv?520:360;
+    let x=r.right+14;if(x+W>innerWidth-10)x=Math.max(10,r.left-W-14);
+    let y=Math.min(Math.max(10,r.top-40),innerHeight-H-10);if(y<10)y=10;
+    pv.style.left=x+"px";pv.style.top=y+"px";pv.classList.add("on");
+  });
+  document.addEventListener("mouseout",e=>{const th=e.target.closest&&e.target.closest(".th[data-pv]");if(th&&!th.contains(e.relatedTarget))hide()});
+  addEventListener("scroll",hide,true);
+})();
 
 show(location.hash.slice(1)||"overview");
 function showApp(on){$("#appRoot").hidden=!on;$("#login").hidden=on;}
