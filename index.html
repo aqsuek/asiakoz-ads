@@ -302,6 +302,26 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
 #pv .cap{color:var(--nav-ink);font-size:12px;padding:8px 12px;text-align:center}
 @media (hover:none){#pv{display:none}}
 </style>
+<style>
+.bd{margin:0 0 12px}.bd-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin-bottom:5px;font-size:13px}
+.bd-h b{font-weight:600}.bd-n{margin-left:auto;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.share.good i{background:var(--good)}.share.warn i{background:var(--warn)}.share.bad i{background:var(--bad)}
+.bigstat{font-family:var(--f-head,inherit);font-size:34px;font-weight:700;line-height:1.1;margin:4px 0 14px}
+.bigstat small{display:block;font-family:var(--f-body,inherit);font-size:12.5px;font-weight:400;color:var(--muted);margin-top:4px}
+.tri{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:6px 0 10px}
+.tri div{min-width:0}.tri dt{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.tri dd{margin:3px 0 0;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.fnote{font-size:12px;color:var(--muted);margin:10px 0 0}
+.rep-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+#report h2{margin-top:26px}#report h2:first-child{margin-top:0}
+#report .rhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:6px}
+#report .rhead b{font-size:22px}
+.rt-w{overflow-x:auto}.rt{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.rt th,.rt td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.rt th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.rt th:first-child,.rt td:first-child{text-align:left;white-space:normal}.rt tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+@media print{.side,.top,#notice,.noprint,#pv{display:none!important}.app,.main,.content{display:block!important;margin:0!important;padding:0!important;max-width:none!important}
+  body{background:#fff!important}.card{box-shadow:none!important;border:0!important;padding:0!important;background:#fff!important}.rt{font-size:11px}#report h2{break-after:avoid}.rt tr{break-inside:avoid}}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -325,6 +345,7 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
       <a href="#overview" data-v="overview"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zM13 21h8v-8h-8zM13 3v6h8V3zM3 21h8v-4H3z"/></svg><span class="lbl">Обзор</span></a>
       <a href="#ads" data-v="ads"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lbl">Объявления</span></a>
       <a href="#chats" data-v="chats"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span class="lbl">Чаты</span><span class="cnt" id="chatCnt" hidden></span></a>
+      <a href="#report" data-v="report"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7"/></svg><span class="lbl">Отчёт</span></a>
       <a href="#codes" data-v="codes"><svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg><span class="lbl">Коды</span></a>
       <a href="#setup" data-v="setup"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="lbl">Настройка</span></a>
     </nav>
@@ -355,6 +376,14 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
           <div class="chart" id="chart"></div>
         </div>
         <div class="grid2">
+          <div class="card"><h2>Окупаемость</h2><p class="sub">Сколько вернули пациенты, пришедшие с рекламы</p><div id="roas"></div></div>
+          <div class="card"><h2>Ответ оператора</h2><p class="sub">Как быстро отвечают на новый диалог в WhatsApp</p><div id="reply"></div></div>
+        </div>
+        <div class="grid2">
+          <div class="card"><h2>Возраст</h2><p class="sub">Где переписка дешевле, по данным Meta</p><div id="bdAge"></div></div>
+          <div class="card"><h2>Места показа</h2><p class="sub">Reels, Stories, лента</p><div id="bdPlace"></div></div>
+        </div>
+        <div class="grid2">
           <div class="card"><h2>Лучшие объявления</h2><p class="sub">Самая низкая цена записи</p><div class="mini" id="best"></div></div>
           <div class="card"><h2>Требуют внимания</h2><p class="sub">Тратят деньги, а записей нет или запись дорогая</p><div class="mini" id="worst"></div></div>
         </div>
@@ -364,7 +393,7 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
         <div class="card">
           <div class="toolbar">
             <input class="field search" id="q" type="search" placeholder="Поиск: название, код, аудитория" aria-label="Поиск объявлений">
-            <select class="field" id="sortSel" aria-label="Сортировка"><option value="spendK">Сначала дорогие</option><option value="booked">Больше записей</option><option value="leads">Больше чатов с кодом</option><option value="conversations">Больше переписок</option></select>
+            <select class="field" id="sortSel" aria-label="Сортировка"><option value="spendK">Сначала дорогие</option><option value="booked">Больше записей</option><option value="revenue">Больше выручки</option><option value="leads">Больше чатов с кодом</option><option value="conversations">Больше переписок</option></select>
             <div class="seg" role="group" aria-label="Решение" id="vfilter">
               <button data-f="" aria-pressed="true">Все</button><button data-f="scale">Масштабировать</button><button data-f="fix">Пересмотреть</button><button data-f="off">Отключить</button>
             </div>
@@ -392,6 +421,11 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
         </div>
       </section>
 
+      <section data-view="report" hidden>
+        <div class="card rep-bar noprint"><label for="repMonth" style="font-weight:600">Месяц</label><select class="field" id="repMonth" aria-label="Месяц отчёта"></select>
+          <button class="btn" id="repPrint" type="button">Печать / PDF</button><span class="dim" style="font-size:12.5px">В окне печати выберите «Сохранить как PDF».</span></div>
+        <div class="card" id="report"><div class="empty">Загрузка…</div></div>
+      </section>
       <section data-view="codes" hidden>
         <div class="card">
           <h2>Коды и тексты WhatsApp</h2>
@@ -437,7 +471,7 @@ if(!String(S.doctor).includes(":"))S.doctor="";
 const STAGE_NAMES={80710998:"Алматы · Неразобранное",80798278:"Алматы · Новая заявка",80711002:"Алматы · Квалификация",87970354:"Алматы · Нет ответа",87970358:"Алматы · Перезвонить позже",80798370:"Алматы · Записан на прием",87973114:"Алматы · Не пришел — перезапись",142:"Успешно",143:"Нереализовано",89693378:"Шымкент · Неразобранное",89693778:"Шымкент · Лиды",89693782:"Шымкент · Квалификация",89693786:"Шымкент · Записаны на приём",89693790:"Шымкент · Без ответа",89693794:"Шымкент · Отказали",89696238:"Шымкент · Операция болды",89696338:"Шымкент · Келмеді"};
 const TRACK_FROM="2026-11-13";
 const stageLabel=(name,id)=>String(name||STAGE_NAMES[id]||("Этап "+id));
-const TITLES={overview:"Обзор",ads:"Объявления",chats:"Чаты",codes:"Коды",setup:"Настройка"};
+const TITLES={overview:"Обзор",ads:"Объявления",chats:"Чаты",report:"Отчёт",codes:"Коды",setup:"Настройка"};
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -469,14 +503,15 @@ function errorCopy(e){const m=String(e?.message||e||"");
 async function load(){
   const b=$("#refresh");b.classList.add("spin");
   try{
-    const [{data,error},th,fx]=await Promise.all([SB.rpc("ad_panel",{p_from:S.from,p_to:S.to}),SB.rpc("ad_panel_thumbs"),SB.rpc("ad_panel_fx",{p_from:S.from,p_to:S.to})]);
+    const [{data,error},th,fx,ex]=await Promise.all([SB.rpc("ad_panel",{p_from:S.from,p_to:S.to}),SB.rpc("ad_panel_thumbs"),SB.rpc("ad_panel_fx",{p_from:S.from,p_to:S.to}),SB.rpc("ad_panel_extra",{p_from:S.from,p_to:S.to})]);
+    S.extra=(ex&&ex.data)||{};
     if(error)throw error;
     S.thumbs=(th&&th.data)||{};S.fx=(fx&&fx.data&&fx.data.latest)?fx.data:null;
     const d=data||{};
     Object.assign(S,{perf:d.perf||[],daily:d.daily||[],codes:d.codes||[],stages:d.stages||[],log:d.log||[],chats:d.chats||[],unmatched:d.unmatched||[],channels:d.channels||[],loaded:true});
     if(S.from<TRACK_FROM)notice("","Коды и записи считаются с 13.11.","Расход до этой даты показан, а чаты с кодом и записи — нет, поэтому доли и цена записи за этот период занижены. Для честных цифр выберите даты с 13.11.");else notice();
   }catch(e){const[t,x]=errorCopy(e);notice("bad",t,x)}
-  b.classList.remove("spin");render();
+  b.classList.remove("spin");render();if(S.view==="report"&&!REP.data)loadReport($("#repMonth").value);
 }
 
 function trackedDays(){const f=S.from>TRACK_FROM?S.from:TRACK_FROM;return Math.max(0,Math.round((new Date(S.to)-new Date(f))/864e5)+1)}
@@ -490,7 +525,10 @@ function enrich(r){
   else if(cpb!=null&&cpb>T*1.5){v=["fix","Пересмотреть"];why=`Запись дороже цели в ${(cpb/T).toFixed(1)} раза`;score=.5}
   else if(conv>=5&&leads/conv<.2){v=["fix","Пересмотреть"];why="Мало кто отправляет текст шаблона";score=.7}
   else{v=["watch","Наблюдать"];why=cpb!=null?`Цена записи ${money(cpb)}`:"Пока без выводов";score=2}
-  return{...r,spendK,conversations:conv,leads,booked,cpb,cpc,verdict:v,why,score};
+  const visited=Number(r.visited||0),revenue=Number(r.revenue||0),roas=spendK>0&&revenue>0?revenue/spendK:null;
+  const f=((S.extra||{}).fatigue||{})[r.code];let fat=null;
+  if(f&&Number(f.s7)>=15&&Number(f.c7)>=5&&Number(f.cp)>=5&&Number(f.sp)>0){const up=(Number(f.s7)/Number(f.c7))/(Number(f.sp)/Number(f.cp))-1;if(up>=.3)fat=Math.round(up*100)}
+  return{...r,spendK,conversations:conv,leads,booked,visited,revenue,roas,fat,cpb,cpc,verdict:v,why,score};
 }
 const rows=()=>S.perf.map(enrich).filter(r=>inFilter(r.code));
 const sum=(R,k)=>R.reduce((a,r)=>a+Number(r[k]||0),0);
@@ -536,7 +574,7 @@ function renderOverview(R){
   const st=[["Переписки в Meta",conv],["Написали текст шаблона",leads],["Записан на приём",booked]];
   $("#funnel").innerHTML=st.map(([t,n],i)=>{const prev=i?st[i-1][1]:0;const w=conv?(n?Math.max(2,n/conv*100):0):0;
     return `<div class="fstep"><div class="row"><span>${t}</span><b>${fmt(n)}</b></div><div class="bar"><i style="width:${w}%"></i></div><div class="pct">${i?(prev?Math.round(n/prev*100)+"% от предыдущего шага":"—"):"&nbsp;"}</div></div>`}).join("");
-  renderChart();
+  renderChart();renderExtra(R,spend);
   const withSpend=R.filter(r=>r.spendK>0);
   const best=withSpend.filter(r=>r.booked>0).sort((a,b)=>a.cpb-b.cpb).slice(0,5);
   const worst=withSpend.filter(r=>r.verdict[0]==="off"||r.verdict[0]==="fix").sort((a,b)=>b.spendK-a.spendK).slice(0,5);
@@ -577,7 +615,7 @@ function renderAds(R){
     <td><div class="adcell">${thumb(r.code,true)}<div><div class="ad">${esc(r.name)}</div><div class="meta"><span class="code">${esc(r.code)}</span> ${esc(r.adset_name||"")} · ${esc(r.campaign_name||"")}</div></div></div></td>
     <td data-l="Расход">${money(r.spendK)}</td><td data-l="Переписки">${fmt(r.conversations)}</td><td data-l="Цена переписки">${r.cpc==null?'<span class="dim">—</span>':money(r.cpc)}</td>
     <td data-l="С кодом">${fmt(r.leads)}</td><td data-l="Записались"><b>${fmt(r.booked)}</b></td><td data-l="Цена записи">${r.cpb==null?'<span class="dim">—</span>':money(r.cpb)}</td>
-    <td class="full"><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span><span class="why">${esc(r.why)}</span></td></tr>`).join("")
+    <td class="full"><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span>${r.fat?` <span class="chip fix" title="Цена переписки за последние 7 дней против предыдущих 7">Креатив устал +${r.fat}%</span>`:""}${r.visited||r.revenue?` <span class="chip booked">Пришли ${fmt(r.visited)}${r.revenue?" · "+money(r.revenue):""}${r.roas==null?"":" · ×"+r.roas.toFixed(1).replace(".",",")}</span>`:""}<span class="why">${esc(r.why)}${r.fat?". Переписка за неделю подорожала на "+r.fat+"% — пора обновить креатив":""}</span></td></tr>`).join("")
     :`<tr><td colspan="8"><div class="empty"><b>Ничего не найдено</b>Измените период, врача или поиск.</div></td></tr>`;
   $("#adsNote").textContent=`Решение считается от целевой цены записи ${money(S.target)}, её можно изменить в «Настройке». Показаны объявления с расходом или чатами за период.`;
 }
@@ -620,10 +658,86 @@ function renderSetup(){
     :`<div class="empty">Пока ни одного поступления.</div>`;
 }
 
+const PLACE={"facebook/feed":"Facebook · лента","instagram/feed":"Instagram · лента","instagram/instagram_stories":"Instagram · Stories","instagram/instagram_reels":"Instagram · Reels","facebook/facebook_reels":"Facebook · Reels","facebook/facebook_stories":"Facebook · Stories","instagram/instagram_explore":"Instagram · Интересное","instagram/instagram_explore_grid_home":"Instagram · Интересное","facebook/marketplace":"Facebook · Marketplace","facebook/video_feeds":"Facebook · видео","facebook/instream_video":"Facebook · в видео","instagram/instagram_profile_feed":"Instagram · профиль","facebook/facebook_profile_feed":"Facebook · профиль","facebook/search":"Facebook · поиск","audience_network/an_classic":"Audience Network","messenger/messenger_inbox":"Messenger","threads/threads_feed":"Threads","audience_network/rewarded_video":"Audience Network · видео","facebook/facebook_notification":"Facebook · уведомления","facebook/facebook_reels_overlay":"Facebook · Reels (баннер)","whatsapp/status":"WhatsApp · статус","unknown/unknown":"Не определено"};
+function bdAgg(B,kind,filt){const m={};for(const r of B||[]){if(r.kind!==kind||!filt(r.code))continue;const o=m[r.k]||(m[r.k]={k:r.k,kzt:0,conv:0});o.kzt+=Number(r.kzt);o.conv+=Number(r.conv)}return Object.values(m)}
+function bdPrep(A,kind){return kind==="age"?A.sort((a,b)=>a.k.localeCompare(b.k)):A.sort((a,b)=>b.kzt-a.kzt).slice(0,7)}
+function bdBest(A){const ok=A.filter(a=>a.conv>=5);return ok.length>1?ok.reduce((p,c)=>c.kzt/c.conv<p.kzt/p.conv?c:p):null}
+function bdHtml(A,kind){
+  if(!A.length)return `<div class="empty"><b>Данных пока нет</b>Разбивка загружается из Meta дважды в день.</div>`;
+  A=bdPrep(A,kind);const mx=Math.max(...A.map(a=>a.kzt)),best=bdBest(A);
+  return A.map(a=>`<div class="bd"><div class="bd-h"><b>${esc(kind==="age"?a.k:(PLACE[a.k]||a.k))}</b>${a===best?'<span class="chip booked">дешевле всех</span>':""}<span class="bd-n">${money(a.kzt)} · ${fmt(a.conv)} ${plural(a.conv,"переписка","переписки","переписок")} · ${a.conv?money(a.kzt/a.conv):"—"}</span></div><div class="share"><i style="width:${mx?a.kzt/mx*100:0}%"></i></div></div>`).join("")
+    +`<p class="fnote">Расход и переписки из Meta. Записи по ${kind==="age"?"возрасту":"месту показа"} Meta не передаёт.</p>`}
+function replyAgg(X,filt){const t={n:0,b5:0,b15:0,b60:0,late:0,none:0};for(const r of(X&&X.reply)||[]){if(!filt(r))continue;for(const k in t)t[k]+=Number(r[k]||0)}return t}
+function replyFilter(doctor){if(!doctor)return()=>true;const[t,v]=doctor.split(":");return t==="br"?r=>r.bcode===BRANCH_CODE[v]:r=>!!r.code&&inFilter(r.code)}
+function replyHtml(t,X){
+  if(!t.n)return `<div class="empty"><b>Данных пока нет</b>Время ответа считается ${X&&X.reply_from?"с "+dt(X.reply_from):"с момента подключения"} по новым диалогам в рабочее время.</div>`;
+  const ans=t.b5+t.b15+t.b60+t.late,wait=Math.max(0,t.n-ans-t.none);
+  const L=[["до 5 минут",t.b5,"good"],["5–15 минут",t.b15,""],["15–60 минут",t.b60,"warn"],["дольше часа",t.late,"bad"],["без ответа",t.none,"bad"]];
+  return `<div class="bigstat">${Math.round(t.b5/t.n*100)}%<small>ответов за 5 минут · ${fmt(t.n)} ${plural(t.n,"новый диалог","новых диалога","новых диалогов")}</small></div>`
+    +L.map(([l,n,c])=>`<div class="bd"><div class="bd-h"><b>${l}</b><span class="bd-n">${fmt(n)} · ${Math.round(n/t.n*100)}%</span></div><div class="share ${c}"><i style="width:${n/t.n*100}%"></i></div></div>`).join("")
+    +`<p class="fnote">Диалоги, начатые с 09:00 до 19:00. ${wait?`Ждут ответа меньше часа: ${wait}. `:""}${X&&Number(X.reply_night)?`Ночных и вечерних: ${fmt(X.reply_night)}, они не учитываются. `:""}Ответ быстрее 3 секунд считается автоответом.</p>`}
+function roasHtml(R,spend){
+  const vis=sum(R,"visited"),rev=sum(R,"revenue"),bk=sum(R,"booked");
+  return `<dl class="tri"><div><dt>Пришли</dt><dd>${fmt(vis)}</dd></div><div><dt>Выручка</dt><dd>${rev?money(rev):"—"}</dd></div><div><dt>Окупаемость</dt><dd>${rev&&spend?"×"+(rev/spend).toFixed(1).replace(".",","):"—"}</dd></div></dl>`
+    +(rev?`<p class="fnote">${bk?`Дошли до приёма ${Math.round(vis/bk*100)}% записанных. `:""}Выручка: оплаты пациента из кассы, а если их нет, сумма сделки в amoCRM.</p>`
+      :`<p class="fnote">Выручка появится, когда пациент с рекламы дойдёт до этапа «пришёл» в amoCRM и у сделки будет заполнен бюджет (или оплата попадёт в кассу).</p>`)}
+function renderExtra(R,spend){
+  const X=S.extra||{};
+  $("#roas").innerHTML=roasHtml(R,spend);
+  $("#reply").innerHTML=replyHtml(replyAgg(X,replyFilter(S.doctor)),X);
+  $("#bdAge").innerHTML=bdHtml(bdAgg(X.breakdown,"age",inFilter),"age");
+  $("#bdPlace").innerHTML=bdHtml(bdAgg(X.breakdown,"place",inFilter),"place");
+}
+
+// ---------- месячный отчёт ----------
+const MONTHS=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+const REP={month:"",data:null};
+function repMonths(){const o=[],n=new Date();for(let i=0;i<6;i++){const d=new Date(n.getFullYear(),n.getMonth()-i,1);o.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`)}return o}
+async function loadReport(m){
+  REP.month=m;$("#report").innerHTML=`<div class="empty">Загрузка…</div>`;
+  const[y,mo]=m.split("-").map(Number),from=`${m}-01`,last=new Date(y,mo,0).getDate();
+  const today=new Date(Date.now()+5*36e5).toISOString().slice(0,10);let to=`${m}-${String(last).padStart(2,"0")}`;if(to>today)to=today;
+  try{
+    const[a,fx,ex]=await Promise.all([SB.rpc("ad_panel",{p_from:from,p_to:to}),SB.rpc("ad_panel_fx",{p_from:from,p_to:to}),SB.rpc("ad_panel_extra",{p_from:from,p_to:to})]);
+    if(a.error)throw a.error;
+    REP.data={from,to,perf:(a.data||{}).perf||[],fx:(fx&&fx.data&&fx.data.latest)?fx.data:null,extra:(ex&&ex.data)||{}};
+    renderReport();
+  }catch(e){const[t,x]=errorCopy(e);$("#report").innerHTML=`<div class="empty"><b>${esc(t)}</b>${esc(x)}</div>`}
+}
+function renderReport(){
+  const D=REP.data;if(!D)return;const[y,mo]=REP.month.split("-").map(Number);
+  const P=D.perf.map(r=>{const k=(D.fx&&D.fx.kzt&&D.fx.kzt[r.code]!=null)?Number(D.fx.kzt[r.code]):Number(r.spend)*rate();
+    return{...r,spendK:k,spend:Number(r.spend),conversations:Number(r.conversations),leads:Number(r.leads),booked:Number(r.booked),visited:Number(r.visited||0),revenue:Number(r.revenue||0)}}).filter(r=>r.spendK>0||r.leads>0);
+  const d2=x=>x.slice(8,10)+"."+x.slice(5,7);
+  const cols=["Расход","Переписки","Цена переписки","С кодом","Записались","Цена записи","Пришли","Выручка","Окуп."];
+  const cells=R=>{const sp=sum(R,"spendK"),cv=sum(R,"conversations"),ld=sum(R,"leads"),bk=sum(R,"booked"),vs=sum(R,"visited"),rv=sum(R,"revenue");
+    return `<td>${money(sp)}</td><td>${fmt(cv)}</td><td>${cv?money(sp/cv):"—"}</td><td>${fmt(ld)}</td><td>${fmt(bk)}</td><td>${bk?money(sp/bk):"—"}</td><td>${fmt(vs)}</td><td>${rv?money(rv):"—"}</td><td>${rv&&sp?"×"+(rv/sp).toFixed(1).replace(".",","):"—"}</td>`};
+  const table=(first,rowsHtml)=>`<div class="rt-w"><table class="rt"><thead><tr><th>${first}</th>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+  const BR=[["ala","Алматы"],["akt","Ақтау"],["cit","Шымкент"]];
+  const brRows=BR.map(([b,n])=>[n,P.filter(r=>(groupOf(r.code)||{}).br===b)]).filter(x=>x[1].length).map(([n,R])=>`<tr><td>${n}</td>${cells(R)}</tr>`).join("")+`<tr class="tot"><td>Итого</td>${cells(P)}</tr>`;
+  const grRows=GROUPS.map(g=>[g.name,P.filter(r=>groupOf(r.code)===g)]).filter(x=>x[1].length).map(([n,R])=>`<tr><td>${esc(n)}</td>${cells(R)}</tr>`).join("");
+  const top=[...P].sort((a,b)=>b.spendK-a.spendK).slice(0,15).map(r=>`<tr><td><span class="code">${esc(r.code)}</span> ${esc(r.name)}</td>${cells([r])}</tr>`).join("");
+  const bdT=(kind,title)=>{const A=bdPrep(bdAgg(D.extra.breakdown,kind,()=>true),kind);if(!A.length)return"";const best=bdBest(A);
+    return `<h2>${title}</h2><div class="rt-w"><table class="rt"><thead><tr><th>${kind==="age"?"Возраст":"Место показа"}</th><th>Расход</th><th>Переписки</th><th>Цена переписки</th></tr></thead><tbody>${A.map(a=>`<tr><td>${esc(kind==="age"?a.k:(PLACE[a.k]||a.k))}${a===best?" · дешевле всех":""}</td><td>${money(a.kzt)}</td><td>${fmt(a.conv)}</td><td>${a.conv?money(a.kzt/a.conv):"—"}</td></tr>`).join("")}</tbody></table></div>`};
+  const rp=replyAgg(D.extra,()=>true);
+  const usd=sum(P,"spend");
+  $("#report").innerHTML=`<div class="rhead"><b>Азиякөз · отчёт по рекламе</b><span>${MONTHS[mo-1]} ${y} · ${d2(D.from)}–${d2(D.to)}</span></div>
+    <p class="fnote" style="margin:0 0 6px">Расход: $${fmt(usd)}${D.fx?`, средний курс ${String(D.fx.avg).replace(".",",")} ₸ (Нацбанк РК, по дням)`:""}. ${D.from<TRACK_FROM?"Коды и записи считаются с 13.11, поэтому за более ранние дни есть только расход и переписки.":""}</p>
+    <h2>По филиалам</h2>${table("Филиал",brRows)}
+    ${grRows?`<h2>По врачам и кампаниям</h2>${table("Врач / кампания",grRows)}`:""}
+    ${top?`<h2>Объявления: топ-15 по расходу</h2>${table("Объявление",top)}`:`<div class="empty"><b>За этот месяц данных нет</b></div>`}
+    ${bdT("age","Возраст")}${bdT("place","Места показа")}
+    ${rp.n?`<h2>Ответ оператора</h2><div class="rt-w"><table class="rt"><thead><tr><th>Новых диалогов</th><th>До 5 мин</th><th>5–15 мин</th><th>15–60 мин</th><th>Дольше часа</th><th>Без ответа</th></tr></thead><tbody><tr><td>${fmt(rp.n)}</td><td>${fmt(rp.b5)} (${Math.round(rp.b5/rp.n*100)}%)</td><td>${fmt(rp.b15)}</td><td>${fmt(rp.b60)}</td><td>${fmt(rp.late)}</td><td>${fmt(rp.none)}</td></tr></tbody></table></div><p class="fnote">Диалоги, начатые с 09:00 до 19:00.</p>`:""}
+    <p class="fnote">Переписки — данные Meta. «С кодом» — чаты, где клиент отправил текст шаблона объявления. Записи и приход — этапы amoCRM. Сформировано ${dt(new Date())}.</p>`;
+}
+(function(){const sel=$("#repMonth");sel.innerHTML=repMonths().map(m=>{const[y,mo]=m.split("-").map(Number);return `<option value="${m}">${MONTHS[mo-1]} ${y}</option>`}).join("");
+  sel.addEventListener("change",()=>loadReport(sel.value));$("#repPrint").addEventListener("click",()=>window.print())})();
+
 function show(v){if(!TITLES[v])v="overview";S.view=v;
   document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll(".nav a").forEach(a=>a.dataset.v===v?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
-  $("#pageTitle").textContent=TITLES[v];}
+  $("#pageTitle").textContent=TITLES[v];
+  if(v==="report"&&S.loaded&&!REP.data)loadReport($("#repMonth").value);}
 addEventListener("hashchange",()=>show(location.hash.slice(1)));
 
 document.querySelectorAll("#presets button").forEach(b=>b.addEventListener("click",()=>{applyPreset(b.dataset.p);render();load()}));
