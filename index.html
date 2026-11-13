@@ -303,7 +303,7 @@ td .meta{font-size:12px;color:var(--muted);white-space:normal;max-width:320px;ma
         <div class="grid2">
           <div class="card">
             <h2>Этапы amoCRM</h2>
-            <p class="sub">Этапы со значением «Записан» считаются записью на приём. Сделка остаётся записанной, даже если потом перешла дальше.</p>
+            <p class="sub">«Записан» → в Meta уходит QualifiedLead. «Пришёл / оплатил» → Purchase с суммой из кассы. Такие сделки тоже считаются записями.</p>
             <div class="list" id="stages"></div>
           </div>
           <div class="card">
@@ -500,7 +500,7 @@ function renderSetup(){
   $("#stages").innerHTML=S.stages.length?S.stages.map(s=>{const name=s.stage_name||STAGE_NAMES[s.status_id]||"Этап "+s.status_id;
     return `<div class="li"><div class="grow"><b>${esc(name)}</b><div class="dim" style="font-size:12px">сделок сейчас: ${s.n}</div></div>
     <select class="field" data-stage="${s.pipeline_id}:${s.status_id}" data-name="${esc(name)}" aria-label="Значение этапа ${esc(name)}">
-      <option value="">не учитывать</option><option value="booked" ${s.kind==="booked"?"selected":""}>Записан</option><option value="lost" ${s.kind==="lost"?"selected":""}>Отказ</option></select></div>`}).join("")
+      <option value="">не учитывать</option><option value="booked" ${s.kind==="booked"?"selected":""}>Записан</option><option value="visited" ${s.kind==="visited"?"selected":""}>Пришёл / оплатил</option><option value="lost" ${s.kind==="lost"?"selected":""}>Отказ</option></select></div>`}).join("")
     :`<div class="empty">Этапы появятся, когда amoCRM пришлёт первые сделки.</div>`;
   const nm={wazzup:"Wazzup",amocrm:"amoCRM",meta:"Meta"};
   $("#log").innerHTML=S.log.length?S.log.map(l=>`<div class="li"><span class="dot ${l.ok?"ok":"err"}"></span><div class="grow"><b>${nm[l.source]||esc(l.source)}</b> <span class="dim">${dt(l.received_at)}</span><div class="mono dim">${esc(l.note)}</div></div></div>`).join("")
