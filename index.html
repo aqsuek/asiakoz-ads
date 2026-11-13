@@ -78,10 +78,10 @@ button,select,input{font:inherit;color:inherit}
 .btn.spin svg{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.content{padding-block:22px 48px;padding-left:24px;padding-right:max(24px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px;max-width:1240px;width:100%}
+.content{padding-block:22px 48px;padding-left:24px;padding-right:max(24px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px;max-width:1440px;width:100%;margin-inline:auto}
 .content>section{display:flex;flex-direction:column;gap:18px}
 .note{display:flex;flex-wrap:wrap;gap:4px 10px;padding:11px 14px;border-radius:10px;background:var(--warn-soft);font-size:13px}
-.note.bad{background:var(--bad-soft)} .note.ok{background:var(--good-soft)}
+.note.bad{background:var(--bad-soft)} .note.ok{background:var(--good-soft)} .note.info,.note:not(.bad):not(.ok):not(.warn){background:var(--accent-soft)}
 
 .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
@@ -111,7 +111,7 @@ button,select,input{font:inherit;color:inherit}
 
 .funnel{display:flex;flex-direction:column;gap:14px}
 .funnel-h{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
 .flag{font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:2px 8px;align-self:flex-start}
 @media (max-width:640px){.funnel-h{grid-template-columns:minmax(0,1fr)}}
 .fstep .row{display:flex;justify-content:space-between;gap:10px;font-size:13px}
@@ -180,8 +180,10 @@ td .meta{font-size:12px;color:var(--muted);white-space:normal;max-width:320px;ma
   .side .foot,.logo span,.logo b{display:none}
   .nav{flex-direction:row}
   .nav a{padding:7px 9px;white-space:nowrap}
-  .nav a .lbl{display:none}
-  .nav a[aria-current="page"] .lbl{display:inline}
+  .nav a{flex-direction:column;gap:2px;font-size:11px;padding:6px 8px}
+  .nav a svg{width:17px;height:17px}
+  .nav a .cnt{position:absolute;margin:0 0 0 22px;font-size:10px;padding:0 5px}
+  .nav a{position:relative}
   .top{position:static}
   .top-in,.content{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
   .grid2,.grid3{grid-template-columns:minmax(0,1fr)}
@@ -333,7 +335,9 @@ const pad=n=>String(n).padStart(2,"0"), ymd=d=>`${d.getFullYear()}-${pad(d.getMo
 const S={view:"overview",preset:store.get("preset","7"),from:"",to:"",doctor:store.get("doctor",""),cur:store.get("cur2","USD"),rate:store.get("rate",500),target:store.get("target_b",10000),
   q:"",vf:"",sort:{k:"spendK",dir:-1},perf:[],daily:[],codes:[],stages:[],log:[],chats:[],mcp:null,loaded:false};
 if(!String(S.doctor).includes(":"))S.doctor="";
-const STAGE_NAMES={80710998:"Неразобранное",80798278:"Новая заявка",80711002:"Квалификация",87970354:"Нет ответа",87970358:"Перезвонить позже",80798370:"Записан на прием",87973114:"Не пришел — перезапись",142:"Успешно",143:"Нереализовано"};
+const STAGE_NAMES={80710998:"Алматы · Неразобранное",80798278:"Алматы · Новая заявка",80711002:"Алматы · Квалификация",87970354:"Алматы · Нет ответа",87970358:"Алматы · Перезвонить позже",80798370:"Алматы · Записан на прием",87973114:"Алматы · Не пришел — перезапись",142:"Успешно",143:"Нереализовано",89693378:"Шымкент · Неразобранное",89693778:"Шымкент · Лиды",89693782:"Шымкент · Квалификация",89693786:"Шымкент · Записаны на приём",89693790:"Шымкент · Без ответа",89693794:"Шымкент · Отказали",89696238:"Шымкент · Операция болды",89696338:"Шымкент · Келмеді"};
+const TRACK_FROM="2026-11-13";
+const stageLabel=(name,id)=>String(name||STAGE_NAMES[id]||("Этап "+id));
 const TITLES={overview:"Обзор",ads:"Объявления",chats:"Чаты",codes:"Коды",setup:"Настройка"};
 
 const $=s=>document.querySelector(s);
@@ -369,15 +373,18 @@ async function load(){
     const {data,error}=await SB.rpc("ad_panel",{p_from:S.from,p_to:S.to});
     if(error)throw error;
     const d=data||{};
-    Object.assign(S,{perf:d.perf||[],daily:d.daily||[],codes:d.codes||[],stages:d.stages||[],log:d.log||[],chats:d.chats||[],unmatched:d.unmatched||[],channels:d.channels||[],loaded:true});notice();
+    Object.assign(S,{perf:d.perf||[],daily:d.daily||[],codes:d.codes||[],stages:d.stages||[],log:d.log||[],chats:d.chats||[],unmatched:d.unmatched||[],channels:d.channels||[],loaded:true});
+    if(S.from<TRACK_FROM)notice("","Коды и записи считаются с 13.11.","Расход до этой даты показан, а чаты с кодом и записи — нет, поэтому доли и цена записи за этот период занижены. Для честных цифр выберите даты с 13.11.");else notice();
   }catch(e){const[t,x]=errorCopy(e);notice("bad",t,x)}
   b.classList.remove("spin");render();
 }
 
+function trackedDays(){const f=S.from>TRACK_FROM?S.from:TRACK_FROM;return Math.max(0,Math.round((new Date(S.to)-new Date(f))/864e5)+1)}
 function enrich(r){
   const spendK=Number(r.spend)*rate(),conv=Number(r.conversations),leads=Number(r.leads),booked=Number(r.booked);
   const cpb=booked?spendK/booked:null,cpc=conv?spendK/conv:null,T=Number(S.target)||10000;let v,why,score;
-  if(booked===0&&spendK<T){v=["watch","Мало данных"];why="Потрачено меньше цены одной записи";score=1}
+  if(trackedDays()<3){v=["watch","Мало данных"];why="Нужно 3+ дня данных";score=1}
+  else if(booked===0&&spendK<T){v=["watch","Мало данных"];why="Потрачено меньше цены одной записи";score=1}
   else if(booked===0&&spendK>=T*1.5){v=["off","Отключить"];why=`Потрачено ${money(spendK)}, записей нет`;score=0}
   else if(cpb!=null&&cpb<=T*.7&&booked>=2){v=["scale","Масштабировать"];why=`Запись дешевле цели: ${money(cpb)}`;score=3}
   else if(cpb!=null&&cpb>T*1.5){v=["fix","Пересмотреть"];why=`Запись дороже цели в ${(cpb/T).toFixed(1)} раза`;score=.5}
@@ -472,7 +479,7 @@ function renderAds(R){
 
 function renderChats(){
   const C=S.chats.filter(c=>inFilter(c.ad_code));
-  $("#chats tbody").innerHTML=C.length?C.map(c=>{const st=c.status_id?(String(c.stage_name||"").replace(/^[^·]+· /,"")||STAGE_NAMES[c.status_id]||"Этап "+c.status_id):"Сделки ещё нет";
+  $("#chats tbody").innerHTML=C.length?C.map(c=>{const st=c.status_id?stageLabel(c.stage_name,c.status_id).replace(/^[^·]+· /,""):(/^[АБВГ]/.test(c.ad_code)?"amoCRM Ақтау не подключён":"Сделки ещё нет");
     const cls=c.booked_at?"booked":Number(c.status_id)===143?"lost":"watch";
     return `<tr><td class="l">${dt(c.first_message_at)}</td>
     <td class="l"><div class="ad">${esc(c.name)}</div><div class="meta"><span class="code">${esc(c.ad_code)}</span> ${esc(c.adset_name||"")}</div></td>
@@ -497,7 +504,7 @@ function renderCodes(){
 }
 
 function renderSetup(){
-  $("#stages").innerHTML=S.stages.length?S.stages.map(s=>{const name=s.stage_name||STAGE_NAMES[s.status_id]||"Этап "+s.status_id;
+  $("#stages").innerHTML=S.stages.length?[...S.stages].sort((a,b)=>stageLabel(a.stage_name,a.status_id).localeCompare(stageLabel(b.stage_name,b.status_id))).map(s=>{const name=stageLabel(s.stage_name,s.status_id);
     return `<div class="li"><div class="grow"><b>${esc(name)}</b><div class="dim" style="font-size:12px">сделок сейчас: ${s.n}</div></div>
     <select class="field" data-stage="${s.pipeline_id}:${s.status_id}" data-name="${esc(name)}" aria-label="Значение этапа ${esc(name)}">
       <option value="">не учитывать</option><option value="booked" ${s.kind==="booked"?"selected":""}>Записан</option><option value="visited" ${s.kind==="visited"?"selected":""}>Пришёл / оплатил</option><option value="lost" ${s.kind==="lost"?"selected":""}>Отказ</option></select></div>`}).join("")
