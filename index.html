@@ -83,7 +83,7 @@ button,select,input{font:inherit;color:inherit}
 .note{display:flex;flex-wrap:wrap;gap:4px 10px;padding:11px 14px;border-radius:10px;background:var(--warn-soft);font-size:13px}
 .note.bad{background:var(--bad-soft)} .note.ok{background:var(--good-soft)} .note.info,.note:not(.bad):not(.ok):not(.warn){background:var(--accent-soft)}
 
-.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
 .kpi .v{font-family:var(--f-display);font-size:26px;font-weight:600;margin-top:6px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -189,7 +189,7 @@ td .meta{font-size:12px;color:var(--muted);white-space:normal;max-width:320px;ma
   .grid2,.grid3{grid-template-columns:minmax(0,1fr)}
   .grid3>.card:last-child{grid-column:auto}
 }
-@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis .kpi:last-child{grid-column:1/-1}.kpi .v{font-size:21px}.top h1{flex-basis:100%}}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .v{font-size:21px}.top h1{flex-basis:100%}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 #sortSel{display:none}
@@ -553,16 +553,21 @@ function renderFeed(){
   const n=S.chats.filter(c=>inFilter(c.ad_code)).length;const c=$("#chatCnt");c.hidden=!n;c.textContent=n;
 }
 
+// все записи amoCRM за период с учётом фильтра (филиал или филиал врача)
+function crmBooked(){let br="";if(S.doctor){const[t,v]=S.doctor.split(":");br=t==="br"?v:((GROUPS.find(g=>g.id===v)||{}).br||"")}
+  const acc=br?BRANCH_CODE[br]:null;return(S.crm||[]).filter(r=>!acc||r.acc===acc).reduce((n,r)=>n+Number(r.booked||0),0)}
 function renderOverview(R){
   const spend=sum(R,"spendK"),conv=sum(R,"conversations"),leads=sum(R,"leads"),booked=sum(R,"booked");
   const days=Math.round((new Date(S.to)-new Date(S.from))/864e5)+1;
+  const allB=crmBooked();
   const k=(l,v,s,cls="")=>`<div class="kpi ${cls}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
   $("#kpis").innerHTML=
     k("Расход",money(spend),`${days} ${plural(days,"день","дня","дней")}`+(S.fx?` · $${fmt(sum(R,"spend"))} · курс ${String(S.fx.avg).replace(".",",")}`:(S.cur==="USD"?` · $${fmt(spend/rate())}`:"")))+
     k("Переписки",fmt(conv),conv?`${money(spend/conv)} за переписку`:"по данным Meta")+
     k("С кодом",fmt(leads),conv?`${Math.round(leads/conv*100)}% переписок`:"текст шаблона в чате")+
-    k("Записались",fmt(booked),leads?`${Math.round(booked/leads*100)}% чатов с кодом`:"по amoCRM","key")+
-    k("Цена записи",booked?money(spend/booked):"—",`цель ${money(S.target)}`);
+    k("Записи с кодом",fmt(booked),leads?`${Math.round(booked/leads*100)}% чатов с кодом`:"по amoCRM","key")+
+    k("Все записи",fmt(allB),allB&&spend?`${money(spend/allB)} расхода на запись · все сделки amoCRM`:"все сделки amoCRM за период")+
+    k("Цена записи с кодом",booked?money(spend/booked):"—",`цель ${money(S.target)}`);
   const P=S.perf.map(enrich);
   $("#groups").innerHTML=GROUPS.filter(g=>inFilter(g.pre[0]+"00")).map(g=>{
     const D=P.filter(r=>groupOf(r.code)===g),sp=sum(D,"spendK"),bk=sum(D,"booked"),ld=sum(D,"leads"),cv=sum(D,"conversations");
