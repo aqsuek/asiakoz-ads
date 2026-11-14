@@ -359,7 +359,7 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
         <button data-p="today">Сегодня</button><button data-p="yesterday">Вчера</button><button data-p="7">7 дней</button><button data-p="30">30 дней</button><button data-p="month">Месяц</button>
       </div>
       <div class="dates"><input class="field" type="date" id="from" aria-label="С даты"><span class="dim">—</span><input class="field" type="date" id="to" aria-label="По дату"></div>
-      <select class="field" id="doctor" aria-label="Филиал или врач"><option value="">Все филиалы</option><optgroup label="Филиал"><option value="br:ala">Алматы</option><option value="br:akt">Ақтау</option><option value="br:cit">Шымкент</option></optgroup><optgroup label="Врач / кампания"><option value="g:talip">Талип</option><option value="g:mehmet">Мехмет</option><option value="g:erol">Эрол</option><option value="g:aktau">Ақтау жалпы</option><option value="g:shym">Шымкент</option></optgroup></select>
+      <select class="field" id="doctor" aria-label="Филиал или врач"><option value="">Все филиалы</option><optgroup label="Филиал"><option value="br:ala">Алматы</option><option value="br:akt">Ақтау</option><option value="br:cit">Шымкент</option></optgroup><optgroup label="Врач / кампания"><option value="g:talip">Талип</option><option value="g:mehmet">Мехмет</option><option value="g:alatraf">Алматы посты</option><option value="g:erol">Эрол</option><option value="g:aktau">Ақтау жалпы</option><option value="g:shym">Шымкент</option></optgroup></select>
       <button class="btn" id="refresh"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg>Обновить</button>
     </div></header>
 
@@ -483,6 +483,7 @@ const rate=()=>S.cur==="USD"?(Number(S.rate)||1):1;
 const GROUPS=[
   {id:"talip",name:"Орел Талип",note:"Алматы · казахский · 16.11–25.12",br:"ala",pre:"Т"},
   {id:"mehmet",name:"Мехмет Есат Текер",note:"Алматы · русский",br:"ala",pre:"М"},
+  {id:"alatraf",name:"Алматы · посты",note:"Кампания «Алматы трафик» · один шаблон на несколько объявлений",br:"ala",pre:"Ф"},
   {id:"erol",name:"Эрол Джошкун",note:"Ақтау, Атырау, батыс · 09–21.11",br:"akt",pre:"АБВ"},
   {id:"aktau",name:"Ақтау · жалпы видео",note:"Маңғыстау облысы",br:"akt",pre:"Г"},
   {id:"shym",name:"Қадір Қырбоға · Шымкент",note:"Шымкент · 16.11–07.12 · лазер",br:"cit",pre:"Ш"}];
