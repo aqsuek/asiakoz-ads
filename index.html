@@ -375,6 +375,7 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
             <div class="legend"><span><i style="background:var(--accent-soft)"></i>Расход</span><span><i style="background:var(--warn)"></i>Чаты с кодом</span><span><i style="background:var(--accent)"></i>Записались</span></div></div>
           <div class="chart" id="chart"></div>
         </div>
+        <div class="card"><h2>Все записи в amoCRM</h2><p class="sub">Все сделки, дошедшие до этапа «Записан», не только с кодом рекламы</p><div id="crmAll"></div></div>
         <div class="grid2">
           <div class="card"><h2>Окупаемость</h2><p class="sub">Сколько вернули пациенты, пришедшие с рекламы</p><div id="roas"></div></div>
           <div class="card"><h2>Ответ оператора</h2><p class="sub">Как быстро отвечают на новый диалог в WhatsApp</p><div id="reply"></div></div>
@@ -505,6 +506,7 @@ async function load(){
   try{
     const [{data,error},th,fx,ex]=await Promise.all([SB.rpc("ad_panel",{p_from:S.from,p_to:S.to}),SB.rpc("ad_panel_thumbs"),SB.rpc("ad_panel_fx",{p_from:S.from,p_to:S.to}),SB.rpc("ad_panel_extra",{p_from:S.from,p_to:S.to})]);
     S.extra=(ex&&ex.data)||{};
+    try{const cr=await SB.rpc("ad_panel_crm",{p_from:S.from,p_to:S.to});S.crm=(cr&&cr.data)||[]}catch(e){S.crm=[]}
     if(error)throw error;
     S.thumbs=(th&&th.data)||{};S.fx=(fx&&fx.data&&fx.data.latest)?fx.data:null;
     const d=data||{};
@@ -681,8 +683,19 @@ function roasHtml(R,spend){
   return `<dl class="tri"><div><dt>Пришли</dt><dd>${fmt(vis)}</dd></div><div><dt>Выручка</dt><dd>${rev?money(rev):"—"}</dd></div><div><dt>Окупаемость</dt><dd>${rev&&spend?"×"+(rev/spend).toFixed(1).replace(".",","):"—"}</dd></div></dl>`
     +(rev?`<p class="fnote">${bk?`Дошли до приёма ${Math.round(vis/bk*100)}% записанных. `:""}Выручка: оплаты пациента из кассы, а если их нет, сумма сделки в amoCRM.</p>`
       :`<p class="fnote">Выручка появится, когда пациент с рекламы дойдёт до этапа «пришёл» в amoCRM и у сделки будет заполнен бюджет (или оплата попадёт в кассу).</p>`)}
+function crmHtml(){
+  const N={ALA:"Алматы",SCO:"Ақтау",CIT:"Шымкент"};let only=null;
+  if(S.doctor&&S.doctor.startsWith("br:"))only=BRANCH_CODE[S.doctor.slice(3)];
+  const A=["ALA","SCO","CIT"].filter(a=>!only||a===only).map(a=>(S.crm||[]).find(r=>r.acc===a)||{acc:a,booked:0,booked_ads:0,visited:0,in_stage:0});
+  const T=k=>A.reduce((n,r)=>n+Number(r[k]||0),0);
+  if(!T("booked")&&!T("visited")&&!T("in_stage"))return `<div class="empty"><b>Записей за период нет</b>Здесь появятся сделки amoCRM, перешедшие в этап «Записан».</div>`;
+  const mx=Math.max(1,...A.map(r=>r.booked));
+  return `<dl class="tri"><div><dt>Записались</dt><dd>${fmt(T("booked"))}</dd></div><div><dt>Из них с рекламы</dt><dd>${fmt(T("booked_ads"))}</dd></div><div><dt>Пришли</dt><dd>${fmt(T("visited"))}</dd></div></dl>`
+    +(A.length>1?A.map(r=>`<div class="bd"><div class="bd-h"><b>${N[r.acc]}</b><span class="bd-n">${fmt(r.booked)} ${plural(r.booked,"запись","записи","записей")} · с рекламы ${fmt(r.booked_ads)} · пришли ${fmt(r.visited)} · сейчас в этапе ${fmt(r.in_stage)}</span></div><div class="share"><i style="width:${r.booked/mx*100}%"></i></div></div>`).join(""):`<p class="fnote">Сейчас в этапе «Записан»: ${fmt(T("in_stage"))}.</p>`)
+    +`<p class="fnote">«С рекламы» — телефон пациента есть среди чатов с кодом объявления. Остальные записи пришли без кода: звонок, повторный пациент или реклама без кода.</p>`}
 function renderExtra(R,spend){
   const X=S.extra||{};
+  $("#crmAll").innerHTML=crmHtml();
   $("#roas").innerHTML=roasHtml(R,spend);
   $("#reply").innerHTML=replyHtml(replyAgg(X,replyFilter(S.doctor)),X);
   $("#bdAge").innerHTML=bdHtml(bdAgg(X.breakdown,"age",inFilter),"age");
