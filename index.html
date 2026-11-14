@@ -470,7 +470,7 @@ const S={view:"overview",preset:store.get("preset","7"),from:"",to:"",doctor:sto
   q:"",vf:"",sort:{k:"spendK",dir:-1},perf:[],daily:[],codes:[],stages:[],log:[],chats:[],mcp:null,loaded:false};
 if(!String(S.doctor).includes(":"))S.doctor="";
 const STAGE_NAMES={80710998:"Алматы · Неразобранное",80798278:"Алматы · Новая заявка",80711002:"Алматы · Квалификация",87970354:"Алматы · Нет ответа",87970358:"Алматы · Перезвонить позже",80798370:"Алматы · Записан на прием",87973114:"Алматы · Не пришел — перезапись",142:"Успешно",143:"Нереализовано",89693378:"Шымкент · Неразобранное",89693778:"Шымкент · Лиды",89693782:"Шымкент · Квалификация",89693786:"Шымкент · Записаны на приём",89693790:"Шымкент · Без ответа",89693794:"Шымкент · Отказали",89696238:"Шымкент · Операция болды",89696338:"Шымкент · Келмеді"};
-const TRACK_FROM="2026-11-13";
+const TRACK_FROM="2026-11-14";
 const stageLabel=(name,id)=>String(name||STAGE_NAMES[id]||("Этап "+id));
 const TITLES={overview:"Обзор",ads:"Объявления",chats:"Чаты",report:"Отчёт",codes:"Коды",setup:"Настройка"};
 
@@ -512,7 +512,7 @@ async function load(){
     S.thumbs=(th&&th.data)||{};S.fx=(fx&&fx.data&&fx.data.latest)?fx.data:null;
     const d=data||{};
     Object.assign(S,{perf:d.perf||[],daily:d.daily||[],codes:d.codes||[],stages:d.stages||[],log:d.log||[],chats:d.chats||[],unmatched:d.unmatched||[],channels:d.channels||[],loaded:true});
-    if(S.from<TRACK_FROM)notice("","Чаты WhatsApp считаются с 13.11.","Расход, переписки Meta и все записи amoCRM есть и за более ранние дни, а лиды (с кодом и без) и записи из чатов — только с 13.11.");else notice();
+    if(S.from<TRACK_FROM)notice("","Чаты WhatsApp считаются с 14.11.","Расход, переписки Meta и все записи amoCRM есть и за более ранние дни, а лиды (с кодом и без) и записи из чатов — только с 14.11.");else notice();
   }catch(e){const[t,x]=errorCopy(e);notice("bad",t,x)}
   b.classList.remove("spin");render();if(S.view==="report"&&!REP.data)loadReport($("#repMonth").value);
 }
@@ -706,7 +706,7 @@ function crmHtml(){
   const mx=Math.max(1,...A.map(ch));
   return `<dl class="tri"><div><dt>Новые чаты WhatsApp</dt><dd>${fmt(tc)}</dd></div><div><dt>Из них записались</dt><dd>${fmt(tb)}</dd></div><div><dt>Цена записи по всей рекламе</dt><dd>${tb&&ts?money(ts/tb):"—"}</dd></div></dl>`
     +A.map(r=>`<div class="bd"><div class="bd-h"><b>${N[r.acc]}</b><span class="bd-n">чаты: с кодом ${fmt(r.chats_coded)} → записались ${fmt(r.chat_booked_coded)} · без кода ${fmt(r.chats_uncoded)} → записались ${fmt(r.chat_booked_uncoded)}${cb(r)&&kzt(r)?" · "+money(kzt(r)/cb(r))+" за запись":""}</span></div><div class="share"><i style="width:${ch(r)/mx*100}%"></i></div></div>`).join("")
-    +`<p class="fnote">Новый чат без кода тоже считается пришедшим с рекламы: другого трафика нет. Расход здесь — вся реклама филиала, включая объявления без кода (${money(ts)}). Считается с 13.11.</p>`
+    +`<p class="fnote">Новый чат без кода тоже считается пришедшим с рекламы: другого трафика нет. Расход здесь — вся реклама филиала, включая объявления без кода (${money(ts)}). Считается с 14.11.</p>`
     +`<dl class="tri" style="margin-top:14px"><div><dt>Все записи amoCRM</dt><dd>${fmt(T("booked"))}</dd></div><div><dt>Новые / повторные</dt><dd>${fmt(T("booked")-T("booked_repeat"))} / ${fmt(T("booked_repeat"))}</dd></div><div><dt>Пришли</dt><dd>${fmt(T("visited"))}</dd></div><div><dt>Сейчас в этапе «Записан»</dt><dd>${fmt(T("in_stage"))}</dd></div></dl>`
     +`<p class="fnote">Все записи включают повторных пациентов и звонки, поэтому их больше, чем записей из новых чатов. Повторный — у пациента уже была сделка или визит раньше; история есть с августа, поэтому часть повторных пока считается новыми.</p>`}
 function renderExtra(R,spend){
@@ -753,10 +753,10 @@ function renderReport(){
   const cs=(R,k)=>R.reduce((n,r)=>n+Number(r[k]||0),0);
   const allRow=(n,R,cls)=>{const sp=cs(R,"kzt"),cv=cs(R,"conv_all"),lc=cs(R,"chats_coded"),lu=cs(R,"chats_uncoded"),cb=cs(R,"chat_booked_coded")+cs(R,"chat_booked_uncoded"),bk=cs(R,"booked"),rp2=cs(R,"booked_repeat"),vs=cs(R,"visited");
     return `<tr${cls?' class="tot"':""}><td>${n}</td><td>${money(sp)}</td><td>${fmt(cv)}</td><td>${fmt(lc+lu)} (${fmt(lc)} / ${fmt(lu)})</td><td>${fmt(cb)}</td><td>${fmt(bk)}</td><td>${fmt(bk-rp2)} / ${fmt(rp2)}</td><td>${fmt(vs)}</td><td>${bk&&sp?money(sp/bk):"—"}</td></tr>`};
-  const allT=C.some(r=>r.kzt>0||Number(r.booked)>0)?`<h2>Вся реклама по филиалам</h2><div class="rt-w"><table class="rt"><thead><tr><th>Филиал</th><th>Расход</th><th>Переписки</th><th>Лиды (с кодом / без)</th><th>Записи из чатов</th><th>Все записи</th><th>Новые / повторные</th><th>Пришли</th><th>Цена записи</th></tr></thead><tbody>${C.map(r=>allRow(CN[r.acc]||r.acc,[r])).join("")}${allRow("Итого",C,1)}</tbody></table></div><p class="fnote">Расход и переписки — все объявления филиала, с кодом и без. Лиды — новые чаты WhatsApp, считаются с 13.11. Все записи — сделки amoCRM, дошедшие до этапа «Записан»; повторные — у пациента уже была сделка или визит раньше (история с августа, поэтому повторных может быть больше).</p>`:"";
+  const allT=C.some(r=>r.kzt>0||Number(r.booked)>0)?`<h2>Вся реклама по филиалам</h2><div class="rt-w"><table class="rt"><thead><tr><th>Филиал</th><th>Расход</th><th>Переписки</th><th>Лиды (с кодом / без)</th><th>Записи из чатов</th><th>Все записи</th><th>Новые / повторные</th><th>Пришли</th><th>Цена записи</th></tr></thead><tbody>${C.map(r=>allRow(CN[r.acc]||r.acc,[r])).join("")}${allRow("Итого",C,1)}</tbody></table></div><p class="fnote">Расход и переписки — все объявления филиала, с кодом и без. Лиды — новые чаты WhatsApp, считаются с 14.11. Все записи — сделки amoCRM, дошедшие до этапа «Записан»; повторные — у пациента уже была сделка или визит раньше (история с августа, поэтому повторных может быть больше).</p>`:"";
   const usd=C.length?cs(C,"spend_usd"):sum(P,"spend");
   $("#report").innerHTML=`<div class="rhead"><b>Азиякөз · отчёт по рекламе</b><span>${MONTHS[mo-1]} ${y} · ${d2(D.from)}–${d2(D.to)}</span></div>
-    <p class="fnote" style="margin:0 0 6px">Расход: $${fmt(usd)}${D.fx?`, средний курс ${String(D.fx.avg).replace(".",",")} ₸ (Нацбанк РК, по дням)`:""}. ${D.from<TRACK_FROM?"Чаты WhatsApp считаются с 13.11, поэтому за более ранние дни есть только расход, переписки и записи amoCRM.":""}</p>
+    <p class="fnote" style="margin:0 0 6px">Расход: $${fmt(usd)}${D.fx?`, средний курс ${String(D.fx.avg).replace(".",",")} ₸ (Нацбанк РК, по дням)`:""}. ${D.from<TRACK_FROM?"Чаты WhatsApp считаются с 14.11, поэтому за более ранние дни есть только расход, переписки и записи amoCRM.":""}</p>
     ${allT}<h2>Объявления с кодом по филиалам</h2>${table("Филиал",brRows)}
     ${grRows?`<h2>По врачам и кампаниям</h2>${table("Врач / кампания",grRows)}`:""}
     ${top?`<h2>Объявления: топ-15 по расходу</h2>${table("Объявление",top)}`:`<div class="empty"><b>За этот месяц данных нет</b></div>`}
