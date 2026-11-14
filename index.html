@@ -375,7 +375,7 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
             <div class="legend"><span><i style="background:var(--accent-soft)"></i>Расход</span><span><i style="background:var(--warn)"></i>Чаты с кодом</span><span><i style="background:var(--accent)"></i>Записались</span></div></div>
           <div class="chart" id="chart"></div>
         </div>
-        <div class="card"><h2>Все записи в amoCRM</h2><p class="sub">Все сделки, дошедшие до этапа «Записан», не только с кодом рекламы</p><div id="crmAll"></div></div>
+        <div class="card"><h2>Чаты и записи по всей рекламе</h2><p class="sub">Все новые чаты WhatsApp, с кодом и без, и сколько из них записались</p><div id="crmAll"></div></div>
         <div class="grid2">
           <div class="card"><h2>Окупаемость</h2><p class="sub">Сколько вернули пациенты, пришедшие с рекламы</p><div id="roas"></div></div>
           <div class="card"><h2>Ответ оператора</h2><p class="sub">Как быстро отвечают на новый диалог в WhatsApp</p><div id="reply"></div></div>
@@ -691,13 +691,19 @@ function roasHtml(R,spend){
 function crmHtml(){
   const N={ALA:"Алматы",SCO:"Ақтау",CIT:"Шымкент"};let only=null;
   if(S.doctor&&S.doctor.startsWith("br:"))only=BRANCH_CODE[S.doctor.slice(3)];
-  const A=["ALA","SCO","CIT"].filter(a=>!only||a===only).map(a=>(S.crm||[]).find(r=>r.acc===a)||{acc:a,booked:0,booked_ads:0,visited:0,in_stage:0});
+  const Z={booked:0,booked_ads:0,visited:0,in_stage:0,chats_coded:0,chats_uncoded:0,chat_booked_coded:0,chat_booked_uncoded:0,spend_usd:0};
+  const A=["ALA","SCO","CIT"].filter(a=>!only||a===only).map(a=>({...Z,acc:a,...((S.crm||[]).find(r=>r.acc===a)||{})}));
   const T=k=>A.reduce((n,r)=>n+Number(r[k]||0),0);
-  if(!T("booked")&&!T("visited")&&!T("in_stage"))return `<div class="empty"><b>Записей за период нет</b>Здесь появятся сделки amoCRM, перешедшие в этап «Записан».</div>`;
-  const mx=Math.max(1,...A.map(r=>r.booked));
-  return `<dl class="tri"><div><dt>Записались</dt><dd>${fmt(T("booked"))}</dd></div><div><dt>Из них с рекламы</dt><dd>${fmt(T("booked_ads"))}</dd></div><div><dt>Пришли</dt><dd>${fmt(T("visited"))}</dd></div></dl>`
-    +(A.length>1?A.map(r=>`<div class="bd"><div class="bd-h"><b>${N[r.acc]}</b><span class="bd-n">${fmt(r.booked)} ${plural(r.booked,"запись","записи","записей")} · с рекламы ${fmt(r.booked_ads)} · пришли ${fmt(r.visited)} · сейчас в этапе ${fmt(r.in_stage)}</span></div><div class="share"><i style="width:${r.booked/mx*100}%"></i></div></div>`).join(""):`<p class="fnote">Сейчас в этапе «Записан»: ${fmt(T("in_stage"))}.</p>`)
-    +`<p class="fnote">«С рекламы» — телефон пациента есть среди чатов с кодом объявления. Остальные записи пришли без кода: звонок, повторный пациент или реклама без кода.</p>`}
+  if(!T("booked")&&!T("visited")&&!T("in_stage")&&!T("chats_coded")&&!T("chats_uncoded"))return `<div class="empty"><b>Записей за период нет</b>Здесь появятся сделки amoCRM, перешедшие в этап «Записан».</div>`;
+  const fxr=(S.fx&&Number(S.fx.avg))||rate(),kzt=r=>Number(r.spend_usd||0)*fxr;
+  const ch=r=>Number(r.chats_coded)+Number(r.chats_uncoded),cb=r=>Number(r.chat_booked_coded)+Number(r.chat_booked_uncoded);
+  const tc=A.reduce((n,r)=>n+ch(r),0),tb=A.reduce((n,r)=>n+cb(r),0),ts=A.reduce((n,r)=>n+kzt(r),0);
+  const mx=Math.max(1,...A.map(ch));
+  return `<dl class="tri"><div><dt>Новые чаты WhatsApp</dt><dd>${fmt(tc)}</dd></div><div><dt>Из них записались</dt><dd>${fmt(tb)}</dd></div><div><dt>Цена записи по всей рекламе</dt><dd>${tb&&ts?money(ts/tb):"—"}</dd></div></dl>`
+    +A.map(r=>`<div class="bd"><div class="bd-h"><b>${N[r.acc]}</b><span class="bd-n">чаты: с кодом ${fmt(r.chats_coded)} → записались ${fmt(r.chat_booked_coded)} · без кода ${fmt(r.chats_uncoded)} → записались ${fmt(r.chat_booked_uncoded)}${cb(r)&&kzt(r)?" · "+money(kzt(r)/cb(r))+" за запись":""}</span></div><div class="share"><i style="width:${ch(r)/mx*100}%"></i></div></div>`).join("")
+    +`<p class="fnote">Новый чат без кода тоже считается пришедшим с рекламы: другого трафика нет. Расход здесь — вся реклама филиала, включая объявления без кода (${money(ts)}). Считается с 13.11.</p>`
+    +`<dl class="tri" style="margin-top:14px"><div><dt>Все записи amoCRM</dt><dd>${fmt(T("booked"))}</dd></div><div><dt>Пришли</dt><dd>${fmt(T("visited"))}</dd></div><div><dt>Сейчас в этапе «Записан»</dt><dd>${fmt(T("in_stage"))}</dd></div></dl>`
+    +`<p class="fnote">Все записи включают повторных пациентов и звонки, поэтому их больше, чем записей из новых чатов.</p>`}
 function renderExtra(R,spend){
   const X=S.extra||{};
   $("#crmAll").innerHTML=crmHtml();
