@@ -565,9 +565,9 @@ function renderOverview(R){
   $("#kpis").innerHTML=
     k("Расход",money(spend),`${days} ${plural(days,"день","дня","дней")}`+(S.fx?` · $${fmt(sum(R,"spend"))} · курс ${String(S.fx.avg).replace(".",",")}`:(S.cur==="USD"?` · $${fmt(spend/rate())}`:"")))+
     k("Переписки",fmt(conv),conv?`${money(spend/conv)} за переписку`:"по данным Meta")+
-    k("С кодом",fmt(leads),`${conv?Math.round(leads/conv*100)+"% переписок · ":""}записались ${fmt(booked)}`)+
-    k("Без кода",fmt(unc),`новые чаты без текста шаблона · записались ${fmt(uncB)}`)+
-    k("Записи из чатов",fmt(chatB),chatB&&spend?`${money(spend/chatB)} за запись · цель ${money(S.target)}`:`с кодом и без · цель ${money(S.target)}`)+
+    k("Все лиды",fmt(leads+unc),`с кодом ${fmt(leads)} · без кода ${fmt(unc)}`)+
+    k("Записи из чатов",fmt(chatB),`с кодом ${fmt(booked)} · без кода ${fmt(uncB)}`)+
+    k("Цена записи",chatB&&spend?money(spend/chatB):"—",`по записям из чатов · цель ${money(S.target)}`)+
     k("Все записи",fmt(allB),allB&&spend?`${money(spend/allB)} расхода на запись · все сделки amoCRM`:"все сделки amoCRM за период","key");
   const P=S.perf.map(enrich);
   $("#groups").innerHTML=GROUPS.filter(g=>inFilter(g.pre[0]+"00")).map(g=>{
