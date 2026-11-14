@@ -83,7 +83,7 @@ button,select,input{font:inherit;color:inherit}
 .note{display:flex;flex-wrap:wrap;gap:4px 10px;padding:11px 14px;border-radius:10px;background:var(--warn-soft);font-size:13px}
 .note.bad{background:var(--bad-soft)} .note.ok{background:var(--good-soft)} .note.info,.note:not(.bad):not(.ok):not(.warn){background:var(--accent-soft)}
 
-.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
 .kpi .v{font-family:var(--f-display);font-size:26px;font-weight:600;margin-top:6px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -189,7 +189,7 @@ td .meta{font-size:12px;color:var(--muted);white-space:normal;max-width:320px;ma
   .grid2,.grid3{grid-template-columns:minmax(0,1fr)}
   .grid3>.card:last-child{grid-column:auto}
 }
-@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .v{font-size:21px}.top h1{flex-basis:100%}}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis .kpi:last-child{grid-column:1/-1}.kpi .v{font-size:21px}.top h1{flex-basis:100%}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 #sortSel{display:none}
@@ -566,9 +566,8 @@ function renderOverview(R){
     k("Расход",money(spend),`${days} ${plural(days,"день","дня","дней")}`+(S.fx?` · $${fmt(sum(R,"spend"))} · курс ${String(S.fx.avg).replace(".",",")}`:(S.cur==="USD"?` · $${fmt(spend/rate())}`:"")))+
     k("Переписки",fmt(conv),conv?`${money(spend/conv)} за переписку`:"по данным Meta")+
     k("Все лиды",fmt(leads+unc),`с кодом ${fmt(leads)} · без кода ${fmt(unc)}`)+
-    k("Записи из чатов",fmt(chatB),`с кодом ${fmt(booked)} · без кода ${fmt(uncB)}`)+
-    k("Цена записи",chatB&&spend?money(spend/chatB):"—",`по записям из чатов · цель ${money(S.target)}`)+
-    k("Все записи",fmt(allB),allB&&spend?`${money(spend/allB)} расхода на запись · все сделки amoCRM`:"все сделки amoCRM за период","key");
+    k("Цена записи",allB&&spend?money(spend/allB):"—",chatB&&spend?`по записям из чатов ${money(spend/chatB)}`:`цель ${money(S.target)}`)+
+    k("Все записи",fmt(allB),`из чатов: с кодом ${fmt(booked)} · без кода ${fmt(uncB)}`,"key");
   const P=S.perf.map(enrich);
   $("#groups").innerHTML=GROUPS.filter(g=>inFilter(g.pre[0]+"00")).map(g=>{
     const D=P.filter(r=>groupOf(r.code)===g),sp=sum(D,"spendK"),bk=sum(D,"booked"),ld=sum(D,"leads"),cv=sum(D,"conversations");
