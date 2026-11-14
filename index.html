@@ -512,7 +512,7 @@ async function load(){
     S.thumbs=(th&&th.data)||{};S.fx=(fx&&fx.data&&fx.data.latest)?fx.data:null;
     const d=data||{};
     Object.assign(S,{perf:d.perf||[],daily:d.daily||[],codes:d.codes||[],stages:d.stages||[],log:d.log||[],chats:d.chats||[],unmatched:d.unmatched||[],channels:d.channels||[],loaded:true});
-    if(S.from<TRACK_FROM)notice("","Коды и записи считаются с 13.11.","Расход до этой даты показан, а чаты с кодом и записи — нет, поэтому доли и цена записи за этот период занижены. Для честных цифр выберите даты с 13.11.");else notice();
+    if(S.from<TRACK_FROM)notice("","Чаты WhatsApp считаются с 13.11.","Расход, переписки Meta и все записи amoCRM есть и за более ранние дни, а лиды (с кодом и без) и записи из чатов — только с 13.11.");else notice();
   }catch(e){const[t,x]=errorCopy(e);notice("bad",t,x)}
   b.classList.remove("spin");render();if(S.view==="report"&&!REP.data)loadReport($("#repMonth").value);
 }
@@ -558,16 +558,21 @@ function renderFeed(){
 function crmAgg(k){let br="";if(S.doctor){const[t,v]=S.doctor.split(":");br=t==="br"?v:((GROUPS.find(g=>g.id===v)||{}).br||"")}
   const acc=br?BRANCH_CODE[br]:null;return(S.crm||[]).filter(r=>!acc||r.acc===acc).reduce((n,r)=>n+Number(r[k]||0),0)}
 function renderOverview(R){
-  const spend=sum(R,"spendK"),conv=sum(R,"conversations"),leads=sum(R,"leads"),booked=sum(R,"booked");
+  const spendC=sum(R,"spendK"),convC=sum(R,"conversations"),leads=sum(R,"leads"),booked=sum(R,"booked");
+  // вся реклама филиала (с кодом и без); для фильтра по врачу остаются только его объявления
+  const grp=!!S.doctor&&S.doctor.startsWith("g:"),hasAll=!grp&&(S.crm||[]).some(r=>Number(r.spend_usd)>0);
+  const fxA=(S.fx&&Number(S.fx.avg))||rate();
+  const spend=hasAll?(crmAgg("spend_kzt")||crmAgg("spend_usd")*fxA):spendC,conv=hasAll?crmAgg("conv_all"):convC,usdAll=hasAll?crmAgg("spend_usd"):sum(R,"spend");
   const days=Math.round((new Date(S.to)-new Date(S.from))/864e5)+1;
-  const allB=crmAgg("booked"),unc=crmAgg("chats_uncoded"),uncB=crmAgg("chat_booked_uncoded"),chatB=booked+uncB;
+  const grp0=!!S.doctor&&S.doctor.startsWith("g:");
+  const allB=grp0?booked:crmAgg("booked"),unc=grp0?0:crmAgg("chats_uncoded"),uncB=grp0?0:crmAgg("chat_booked_uncoded"),chatB=booked+uncB;
   const k=(l,v,s,cls="")=>`<div class="kpi ${cls}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
   $("#kpis").innerHTML=
-    k("Расход",money(spend),`${days} ${plural(days,"день","дня","дней")}`+(S.fx?` · $${fmt(sum(R,"spend"))} · курс ${String(S.fx.avg).replace(".",",")}`:(S.cur==="USD"?` · $${fmt(spend/rate())}`:"")))+
-    k("Переписки",fmt(conv),conv?`${money(spend/conv)} за переписку`:"по данным Meta")+
-    k("Все лиды",fmt(leads+unc),`с кодом ${fmt(leads)} · без кода ${fmt(unc)}`)+
-    k("Цена записи",allB&&spend?money(spend/allB):"—",chatB&&spend?`по записям из чатов ${money(spend/chatB)}`:`цель ${money(S.target)}`)+
-    k("Все записи",fmt(allB),`из чатов: с кодом ${fmt(booked)} · без кода ${fmt(uncB)}`,"key");
+    k("Расход",money(spend),`${days} ${plural(days,"день","дня","дней")} · $${fmt(usdAll)}`+(hasAll?` · с кодом ${money(spendC)}`:(S.fx?` · курс ${String(S.fx.avg).replace(".",",")}`:"")))+
+    k("Переписки",fmt(conv),conv?`${money(spend/conv)} за переписку`+(hasAll?` · с кодом ${fmt(convC)}`:""):"по данным Meta")+
+    k(grp0?"Лиды с кодом":"Все лиды",fmt(leads+unc),grp0?"чаты без кода по врачам не делятся":`с кодом ${fmt(leads)} · без кода ${fmt(unc)}`)+
+    k("Цена записи",allB&&spend?money(spend/allB):"—",!grp0&&chatB&&spend?`по записям из чатов ${money(spend/chatB)}`:`цель ${money(S.target)}`)+
+    k(grp0?"Записи с кодом":"Все записи",fmt(allB),grp0?"по объявлениям этого врача":`из чатов: с кодом ${fmt(booked)} · без кода ${fmt(uncB)}`,"key");
   const P=S.perf.map(enrich);
   $("#groups").innerHTML=GROUPS.filter(g=>inFilter(g.pre[0]+"00")).map(g=>{
     const D=P.filter(r=>groupOf(r.code)===g),sp=sum(D,"spendK"),bk=sum(D,"booked"),ld=sum(D,"leads"),cv=sum(D,"conversations");
@@ -695,7 +700,7 @@ function crmHtml(){
   const A=["ALA","SCO","CIT"].filter(a=>!only||a===only).map(a=>({...Z,acc:a,...((S.crm||[]).find(r=>r.acc===a)||{})}));
   const T=k=>A.reduce((n,r)=>n+Number(r[k]||0),0);
   if(!T("booked")&&!T("visited")&&!T("in_stage")&&!T("chats_coded")&&!T("chats_uncoded"))return `<div class="empty"><b>Записей за период нет</b>Здесь появятся сделки amoCRM, перешедшие в этап «Записан».</div>`;
-  const fxr=(S.fx&&Number(S.fx.avg))||rate(),kzt=r=>Number(r.spend_usd||0)*fxr;
+  const fxr=(S.fx&&Number(S.fx.avg))||rate(),kzt=r=>Number(r.spend_kzt)||Number(r.spend_usd||0)*fxr;
   const ch=r=>Number(r.chats_coded)+Number(r.chats_uncoded),cb=r=>Number(r.chat_booked_coded)+Number(r.chat_booked_uncoded);
   const tc=A.reduce((n,r)=>n+ch(r),0),tb=A.reduce((n,r)=>n+cb(r),0),ts=A.reduce((n,r)=>n+kzt(r),0);
   const mx=Math.max(1,...A.map(ch));
