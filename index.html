@@ -483,7 +483,13 @@ const GROUPS=[
   {id:"alatraf",name:"Алматы · посты",note:"Кампания «Алматы трафик» · один шаблон на несколько объявлений",br:"ala",pre:"Ф"},
   {id:"erol",name:"Эрол Джошкун",note:"Ақтау, Атырау, батыс · 09–21.11",br:"akt",pre:"АБВ"},
   {id:"aktau",name:"Ақтау · жалпы видео",note:"Маңғыстау облысы",br:"akt",pre:"Г"},
-  {id:"shym",name:"Қадір Қырбоға · Шымкент",note:"Шымкент · 16.11–07.12 · лазер",br:"cit",pre:"Ш"}];
+  {id:"shym",name:"Қадір Қырбоға · Шымкент",note:"Шымкент · 16.11–07.12 · лазер",br:"cit",pre:"Ш"},
+  {id:"ala_o",name:"Алматы · прочая реклама",note:"Объявления без своего шаблона: старые и приостановленные",br:"ala",pre:"Л"},
+  {id:"akt_o",name:"Ақтау · прочая реклама",note:"Объявления без своего шаблона: старые и приостановленные",br:"akt",pre:"Д"},
+  {id:"cit_o",name:"Шымкент · прочая реклама",note:"Объявления без своего шаблона: старые и приостановленные",br:"cit",pre:"Ж"},
+  {id:"ala_s",name:"Алматы · сайт и 2ГИС",note:"Не реклама Meta: форма сайта, 2ГИС",br:"ala",pre:"Э"},
+  {id:"akt_s",name:"Ақтау · сайт и 2ГИС",note:"Не реклама Meta: форма сайта, 2ГИС, шаблон без объявления",br:"akt",pre:"Ю"},
+  {id:"cit_s",name:"Шымкент · сайт и 2ГИС",note:"Не реклама Meta: форма сайта, 2ГИС",br:"cit",pre:"Я"}];
 const groupOf=code=>GROUPS.find(g=>g.pre.includes(String(code||"")[0]))||null;
 const inFilter=code=>{const g=groupOf(code);if(!S.doctor)return true;if(!g)return false;const[t,v]=S.doctor.split(":");return t==="br"?g.br===v:g.id===v};
 const BRANCH_CODE={ala:"ALA",akt:"SCO",cit:"CIT"};
