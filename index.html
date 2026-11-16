@@ -376,10 +376,7 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
           <div class="chart" id="chart"></div>
         </div>
         <div class="card"><h2>Чаты и записи по всей рекламе</h2><p class="sub">Все новые чаты WhatsApp, с кодом и без, и сколько из них записались</p><div id="crmAll"></div></div>
-        <div class="grid2">
-          <div class="card"><h2>Окупаемость</h2><p class="sub">Сколько вернули пациенты, пришедшие с рекламы</p><div id="roas"></div></div>
-          <div class="card"><h2>Ответ оператора</h2><p class="sub">Как быстро отвечают на новый диалог в WhatsApp</p><div id="reply"></div></div>
-        </div>
+        <div class="card"><h2>Ответ оператора</h2><p class="sub">Как быстро отвечают на новый диалог в WhatsApp</p><div id="reply"></div></div>
         <div class="grid2">
           <div class="card"><h2>Возраст</h2><p class="sub">Где переписка дешевле, по данным Meta</p><div id="bdAge"></div></div>
           <div class="card"><h2>Места показа</h2><p class="sub">Reels, Stories, лента</p><div id="bdPlace"></div></div>
@@ -394,7 +391,7 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
         <div class="card">
           <div class="toolbar">
             <input class="field search" id="q" type="search" placeholder="Поиск: название, код, аудитория" aria-label="Поиск объявлений">
-            <select class="field" id="sortSel" aria-label="Сортировка"><option value="spendK">Сначала дорогие</option><option value="booked">Больше записей</option><option value="revenue">Больше выручки</option><option value="leads">Больше чатов с кодом</option><option value="conversations">Больше переписок</option></select>
+            <select class="field" id="sortSel" aria-label="Сортировка"><option value="spendK">Сначала дорогие</option><option value="booked">Больше записей</option><option value="leads">Больше чатов с кодом</option><option value="conversations">Больше переписок</option></select>
             <div class="seg" role="group" aria-label="Решение" id="vfilter">
               <button data-f="" aria-pressed="true">Все</button><button data-f="scale">Масштабировать</button><button data-f="fix">Пересмотреть</button><button data-f="off">Отключить</button>
             </div>
@@ -627,7 +624,7 @@ function renderAds(R){
     <td><div class="adcell">${thumb(r.code,true)}<div><div class="ad">${esc(r.name)}</div><div class="meta"><span class="code">${esc(r.code)}</span> ${esc(r.adset_name||"")} · ${esc(r.campaign_name||"")}</div></div></div></td>
     <td data-l="Расход">${money(r.spendK)}</td><td data-l="Переписки">${fmt(r.conversations)}</td><td data-l="Цена переписки">${r.cpc==null?'<span class="dim">—</span>':money(r.cpc)}</td>
     <td data-l="С кодом">${fmt(r.leads)}</td><td data-l="Записались"><b>${fmt(r.booked)}</b></td><td data-l="Цена записи">${r.cpb==null?'<span class="dim">—</span>':money(r.cpb)}</td>
-    <td class="full"><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span>${r.fat?` <span class="chip fix" title="Цена переписки за последние 7 дней против предыдущих 7">Креатив устал +${r.fat}%</span>`:""}${r.visited||r.revenue?` <span class="chip booked">Пришли ${fmt(r.visited)}${r.revenue?" · "+money(r.revenue):""}${r.roas==null?"":" · ×"+r.roas.toFixed(1).replace(".",",")}</span>`:""}<span class="why">${esc(r.why)}${r.fat?". Переписка за неделю подорожала на "+r.fat+"% — пора обновить креатив":""}</span></td></tr>`).join("")
+    <td class="full"><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span>${r.fat?` <span class="chip fix" title="Цена переписки за последние 7 дней против предыдущих 7">Креатив устал +${r.fat}%</span>`:""}<span class="why">${esc(r.why)}${r.fat?". Переписка за неделю подорожала на "+r.fat+"% — пора обновить креатив":""}</span></td></tr>`).join("")
     :`<tr><td colspan="8"><div class="empty"><b>Ничего не найдено</b>Измените период, врача или поиск.</div></td></tr>`;
   $("#adsNote").textContent=`Решение считается от целевой цены записи ${money(S.target)}, её можно изменить в «Настройке». Показаны объявления с расходом или чатами за период.`;
 }
@@ -663,7 +660,7 @@ function renderSetup(){
   $("#stages").innerHTML=S.stages.length?[...S.stages].sort((a,b)=>stageLabel(a.stage_name,a.status_id).localeCompare(stageLabel(b.stage_name,b.status_id))).map(s=>{const name=stageLabel(s.stage_name,s.status_id);
     return `<div class="li"><div class="grow"><b>${esc(name)}</b><div class="dim" style="font-size:12px">сделок сейчас: ${s.n}</div></div>
     <select class="field" data-stage="${s.pipeline_id}:${s.status_id}" data-name="${esc(name)}" aria-label="Значение этапа ${esc(name)}">
-      <option value="">не учитывать</option><option value="booked" ${s.kind==="booked"?"selected":""}>Записан</option><option value="visited" ${s.kind==="visited"?"selected":""}>Пришёл / оплатил</option><option value="lost" ${s.kind==="lost"?"selected":""}>Отказ</option></select></div>`}).join("")
+      <option value="">не учитывать</option><option value="booked" ${s.kind==="booked"?"selected":""}>Записан</option><option value="visited" ${s.kind==="visited"?"selected":""}>Успешно (тоже запись)</option><option value="lost" ${s.kind==="lost"?"selected":""}>Отказ</option></select></div>`}).join("")
     :`<div class="empty">Этапы появятся, когда amoCRM пришлёт первые сделки.</div>`;
   const nm={wazzup:"Wazzup",amocrm:"amoCRM",meta:"Meta"};
   $("#log").innerHTML=S.log.length?S.log.map(l=>`<div class="li"><span class="dot ${l.ok?"ok":"err"}"></span><div class="grow"><b>${nm[l.source]||esc(l.source)}</b> <span class="dim">${dt(l.received_at)}</span><div class="mono dim">${esc(l.note)}</div></div></div>`).join("")
@@ -707,12 +704,11 @@ function crmHtml(){
   return `<dl class="tri"><div><dt>Новые чаты WhatsApp</dt><dd>${fmt(tc)}</dd></div><div><dt>Из них записались</dt><dd>${fmt(tb)}</dd></div><div><dt>Цена записи по всей рекламе</dt><dd>${tb&&ts?money(ts/tb):"—"}</dd></div></dl>`
     +A.map(r=>`<div class="bd"><div class="bd-h"><b>${N[r.acc]}</b><span class="bd-n">чаты: с кодом ${fmt(r.chats_coded)} → записались ${fmt(r.chat_booked_coded)} · без кода ${fmt(r.chats_uncoded)} → записались ${fmt(r.chat_booked_uncoded)}${cb(r)&&kzt(r)?" · "+money(kzt(r)/cb(r))+" за запись":""}</span></div><div class="share"><i style="width:${ch(r)/mx*100}%"></i></div></div>`).join("")
     +`<p class="fnote">Новый чат без кода тоже считается пришедшим с рекламы: другого трафика нет. Расход здесь — вся реклама филиала, включая объявления без кода (${money(ts)}). Считается с 14.11.</p>`
-    +`<dl class="tri" style="margin-top:14px"><div><dt>Все записи amoCRM</dt><dd>${fmt(T("booked"))}</dd></div><div><dt>Новые / повторные</dt><dd>${fmt(T("booked")-T("booked_repeat"))} / ${fmt(T("booked_repeat"))}</dd></div><div><dt>Пришли</dt><dd>${fmt(T("visited"))}</dd></div><div><dt>Сейчас в этапе «Записан»</dt><dd>${fmt(T("in_stage"))}</dd></div></dl>`
+    +`<dl class="tri" style="margin-top:14px"><div><dt>Все записи amoCRM</dt><dd>${fmt(T("booked"))}</dd></div><div><dt>Новые / повторные</dt><dd>${fmt(T("booked")-T("booked_repeat"))} / ${fmt(T("booked_repeat"))}</dd></div><div><dt>Сейчас в этапе «Записан»</dt><dd>${fmt(T("in_stage"))}</dd></div></dl>`
     +`<p class="fnote">Все записи включают повторных пациентов и звонки, поэтому их больше, чем записей из новых чатов. Повторный — у пациента уже была сделка или визит раньше; история есть с августа, поэтому часть повторных пока считается новыми.</p>`}
 function renderExtra(R,spend){
   const X=S.extra||{};
   $("#crmAll").innerHTML=crmHtml();
-  $("#roas").innerHTML=roasHtml(R,spend);
   $("#reply").innerHTML=replyHtml(replyAgg(X,replyFilter(S.doctor)),X);
   $("#bdAge").innerHTML=bdHtml(bdAgg(X.breakdown,"age",inFilter),"age");
   $("#bdPlace").innerHTML=bdHtml(bdAgg(X.breakdown,"place",inFilter),"place");
@@ -738,9 +734,9 @@ function renderReport(){
   const P=D.perf.map(r=>{const k=(D.fx&&D.fx.kzt&&D.fx.kzt[r.code]!=null)?Number(D.fx.kzt[r.code]):Number(r.spend)*rate();
     return{...r,spendK:k,spend:Number(r.spend),conversations:Number(r.conversations),leads:Number(r.leads),booked:Number(r.booked),visited:Number(r.visited||0),revenue:Number(r.revenue||0)}}).filter(r=>r.spendK>0||r.leads>0);
   const d2=x=>x.slice(8,10)+"."+x.slice(5,7);
-  const cols=["Расход","Переписки","Цена переписки","С кодом","Записались","Цена записи","Пришли","Выручка","Окуп."];
+  const cols=["Расход","Переписки","Цена переписки","С кодом","Записались","Цена записи"];
   const cells=R=>{const sp=sum(R,"spendK"),cv=sum(R,"conversations"),ld=sum(R,"leads"),bk=sum(R,"booked"),vs=sum(R,"visited"),rv=sum(R,"revenue");
-    return `<td>${money(sp)}</td><td>${fmt(cv)}</td><td>${cv?money(sp/cv):"—"}</td><td>${fmt(ld)}</td><td>${fmt(bk)}</td><td>${bk?money(sp/bk):"—"}</td><td>${fmt(vs)}</td><td>${rv?money(rv):"—"}</td><td>${rv&&sp?"×"+(rv/sp).toFixed(1).replace(".",","):"—"}</td>`};
+    return `<td>${money(sp)}</td><td>${fmt(cv)}</td><td>${cv?money(sp/cv):"—"}</td><td>${fmt(ld)}</td><td>${fmt(bk)}</td><td>${bk?money(sp/bk):"—"}</td>`};
   const table=(first,rowsHtml)=>`<div class="rt-w"><table class="rt"><thead><tr><th>${first}</th>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
   const BR=[["ala","Алматы"],["akt","Ақтау"],["cit","Шымкент"]];
   const brRows=BR.map(([b,n])=>[n,P.filter(r=>(groupOf(r.code)||{}).br===b)]).filter(x=>x[1].length).map(([n,R])=>`<tr><td>${n}</td>${cells(R)}</tr>`).join("")+`<tr class="tot"><td>Итого</td>${cells(P)}</tr>`;
@@ -752,8 +748,8 @@ function renderReport(){
   const CN={ALA:"Алматы",SCO:"Ақтау",CIT:"Шымкент"},fxr=(D.fx&&Number(D.fx.avg))||rate(),C=(D.crm||[]).map(r=>({...r,kzt:Number(r.spend_kzt)||Number(r.spend_usd||0)*fxr}));
   const cs=(R,k)=>R.reduce((n,r)=>n+Number(r[k]||0),0);
   const allRow=(n,R,cls)=>{const sp=cs(R,"kzt"),cv=cs(R,"conv_all"),lc=cs(R,"chats_coded"),lu=cs(R,"chats_uncoded"),cb=cs(R,"chat_booked_coded")+cs(R,"chat_booked_uncoded"),bk=cs(R,"booked"),rp2=cs(R,"booked_repeat"),vs=cs(R,"visited");
-    return `<tr${cls?' class="tot"':""}><td>${n}</td><td>${money(sp)}</td><td>${fmt(cv)}</td><td>${fmt(lc+lu)} (${fmt(lc)} / ${fmt(lu)})</td><td>${fmt(cb)}</td><td>${fmt(bk)}</td><td>${fmt(bk-rp2)} / ${fmt(rp2)}</td><td>${fmt(vs)}</td><td>${bk&&sp?money(sp/bk):"—"}</td></tr>`};
-  const allT=C.some(r=>r.kzt>0||Number(r.booked)>0)?`<h2>Вся реклама по филиалам</h2><div class="rt-w"><table class="rt"><thead><tr><th>Филиал</th><th>Расход</th><th>Переписки</th><th>Лиды (с кодом / без)</th><th>Записи из чатов</th><th>Все записи</th><th>Новые / повторные</th><th>Пришли</th><th>Цена записи</th></tr></thead><tbody>${C.map(r=>allRow(CN[r.acc]||r.acc,[r])).join("")}${allRow("Итого",C,1)}</tbody></table></div><p class="fnote">Расход и переписки — все объявления филиала, с кодом и без. Лиды — новые чаты WhatsApp, считаются с 14.11. Все записи — сделки amoCRM, дошедшие до этапа «Записан»; повторные — у пациента уже была сделка или визит раньше (история с августа, поэтому повторных может быть больше).</p>`:"";
+    return `<tr${cls?' class="tot"':""}><td>${n}</td><td>${money(sp)}</td><td>${fmt(cv)}</td><td>${fmt(lc+lu)} (${fmt(lc)} / ${fmt(lu)})</td><td>${fmt(cb)}</td><td>${fmt(bk)}</td><td>${fmt(bk-rp2)} / ${fmt(rp2)}</td><td>${bk&&sp?money(sp/bk):"—"}</td></tr>`};
+  const allT=C.some(r=>r.kzt>0||Number(r.booked)>0)?`<h2>Вся реклама по филиалам</h2><div class="rt-w"><table class="rt"><thead><tr><th>Филиал</th><th>Расход</th><th>Переписки</th><th>Лиды (с кодом / без)</th><th>Записи из чатов</th><th>Все записи</th><th>Новые / повторные</th><th>Цена записи</th></tr></thead><tbody>${C.map(r=>allRow(CN[r.acc]||r.acc,[r])).join("")}${allRow("Итого",C,1)}</tbody></table></div><p class="fnote">Расход и переписки — все объявления филиала, с кодом и без. Лиды — новые чаты WhatsApp, считаются с 14.11. Все записи — сделки amoCRM, дошедшие до этапа «Записан» или «Успешно»; повторные — у пациента уже была сделка или визит раньше (история с августа, поэтому повторных может быть больше).</p>`:"";
   const usd=C.length?cs(C,"spend_usd"):sum(P,"spend");
   $("#report").innerHTML=`<div class="rhead"><b>Азиякөз · отчёт по рекламе</b><span>${MONTHS[mo-1]} ${y} · ${d2(D.from)}–${d2(D.to)}</span></div>
     <p class="fnote" style="margin:0 0 6px">Расход: $${fmt(usd)}${D.fx?`, средний курс ${String(D.fx.avg).replace(".",",")} ₸ (Нацбанк РК, по дням)`:""}. ${D.from<TRACK_FROM?"Чаты WhatsApp считаются с 14.11, поэтому за более ранние дни есть только расход, переписки и записи amoCRM.":""}</p>
@@ -762,7 +758,7 @@ function renderReport(){
     ${top?`<h2>Объявления: топ-15 по расходу</h2>${table("Объявление",top)}`:`<div class="empty"><b>За этот месяц данных нет</b></div>`}
     ${bdT("age","Возраст")}${bdT("place","Места показа")}
     ${rp.n?`<h2>Ответ оператора</h2><div class="rt-w"><table class="rt"><thead><tr><th>Новых диалогов</th><th>До 5 мин</th><th>5–15 мин</th><th>15–60 мин</th><th>Дольше часа</th><th>Без ответа</th></tr></thead><tbody><tr><td>${fmt(rp.n)}</td><td>${fmt(rp.b5)} (${Math.round(rp.b5/rp.n*100)}%)</td><td>${fmt(rp.b15)}</td><td>${fmt(rp.b60)}</td><td>${fmt(rp.late)}</td><td>${fmt(rp.none)}</td></tr></tbody></table></div><p class="fnote">Диалоги, начатые с 09:00 до 19:00.</p>`:""}
-    <p class="fnote">Переписки — данные Meta. «С кодом» — чаты, где клиент отправил текст шаблона объявления. Записи и приход — этапы amoCRM. Сформировано ${dt(new Date())}.</p>`;
+    <p class="fnote">Переписки — данные Meta. «С кодом» — чаты, где клиент отправил текст шаблона объявления. Записи — этапы amoCRM «Записан» и «Успешно». Сформировано ${dt(new Date())}.</p>`;
 }
 (function(){const sel=$("#repMonth");sel.innerHTML=repMonths().map(m=>{const[y,mo]=m.split("-").map(Number);return `<option value="${m}">${MONTHS[mo-1]} ${y}</option>`}).join("");
   sel.addEventListener("change",()=>loadReport(sel.value));$("#repPrint").addEventListener("click",()=>window.print())})();
