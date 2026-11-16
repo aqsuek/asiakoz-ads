@@ -487,9 +487,9 @@ const GROUPS=[
   {id:"ala_o",name:"Алматы · прочая реклама",note:"Объявления без своего шаблона: старые и приостановленные",br:"ala",pre:"Л"},
   {id:"akt_o",name:"Ақтау · прочая реклама",note:"Объявления без своего шаблона: старые и приостановленные",br:"akt",pre:"Д"},
   {id:"cit_o",name:"Шымкент · прочая реклама",note:"Объявления без своего шаблона: старые и приостановленные",br:"cit",pre:"Ж"},
-  {id:"ala_s",name:"Алматы · профиль, сайт, 2ГИС",note:"Без кода объявления: ссылка в шапке Instagram, форма сайта, 2ГИС",br:"ala",pre:"Э"},
-  {id:"akt_s",name:"Ақтау · профиль, сайт, 2ГИС",note:"Без кода объявления: ссылка в шапке Instagram, форма сайта, 2ГИС",br:"akt",pre:"Ю"},
-  {id:"cit_s",name:"Шымкент · профиль, сайт, 2ГИС",note:"Без кода объявления: ссылка в шапке Instagram, форма сайта, 2ГИС",br:"cit",pre:"Я"}];
+  {id:"ala_s",name:"Алматы · сайт",note:"С рекламы через профиль Instagram: ссылка в шапке ведёт на сайт, оттуда в WhatsApp",br:"ala",pre:"Э"},
+  {id:"akt_s",name:"Ақтау · сайт",note:"С рекламы через профиль Instagram: ссылка в шапке и сайт",br:"akt",pre:"Ю"},
+  {id:"cit_s",name:"Шымкент · сайт",note:"С рекламы через профиль Instagram: ссылка в шапке ведёт на сайт, оттуда в WhatsApp",br:"cit",pre:"Я"}];
 const groupOf=code=>GROUPS.find(g=>g.pre.includes(String(code||"")[0]))||null;
 const inFilter=code=>{const g=groupOf(code);if(!S.doctor)return true;if(!g)return false;const[t,v]=S.doctor.split(":");return t==="br"?g.br===v:g.id===v};
 const BRANCH_CODE={ala:"ALA",akt:"SCO",cit:"CIT"};
