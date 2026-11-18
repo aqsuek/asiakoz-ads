@@ -478,8 +478,8 @@ const fmt=n=>Math.round(n||0).toLocaleString("ru-RU").replace(/ | |,/g," ");
 const money=n=>n==null||!isFinite(n)?"—":fmt(n)+" ₸";
 const rate=()=>S.cur==="USD"?(Number(S.rate)||1):1;
 const GROUPS=[
-  {id:"talip",name:"Орел Талип",note:"Алматы · казахский · 16.11–25.12",br:"ala",pre:"Т"},
-  {id:"mehmet",name:"Мехмет Есат Текер",note:"Алматы · русский",br:"ala",pre:"М"},
+  {id:"talip",name:"Орел Талип",note:"Алматы · қазақша + орысша · 16.11–25.12 · группа «Талип Алматы», 300 $/день",br:"ala",pre:"Т"},
+  {id:"mehmet",name:"Мехмет Есат Текер",note:"Алматы · орысша + қазақша · группа «Мехмет Алматы», 200 $/день",br:"ala",pre:"М"},
   {id:"alatraf",name:"Алматы · посты",note:"Кампания «Алматы трафик» · один шаблон на несколько объявлений",br:"ala",pre:"Ф"},
   {id:"erol",name:"Эрол Джошкун",note:"Ақтау, Атырау, батыс · 09–21.11",br:"akt",pre:"АБВ"},
   {id:"aktau",name:"Ақтау · жалпы видео",note:"Маңғыстау облысы",br:"akt",pre:"Г"},
