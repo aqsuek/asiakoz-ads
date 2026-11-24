@@ -112,6 +112,11 @@ button,select,input{font:inherit;color:inherit}
 .funnel{display:flex;flex-direction:column;gap:14px}
 .funnel-h{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.st{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55}
+.st.on{color:var(--good)}.st.on::before{opacity:1;box-shadow:0 0 0 3px var(--good-soft)}
+.st.bad{color:var(--bad)}.st.bad::before{opacity:1}
+.doc .who .st{margin-left:auto;align-self:flex-start}
 .flag{font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:2px 8px;align-self:flex-start}
 @media (max-width:640px){.funnel-h{grid-template-columns:minmax(0,1fr)}}
 .fstep .row{display:flex;justify-content:space-between;gap:10px;font-size:13px}
@@ -395,6 +400,9 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
             <div class="seg" role="group" aria-label="Решение" id="vfilter">
               <button data-f="" aria-pressed="true">Все</button><button data-f="scale">Масштабировать</button><button data-f="fix">Пересмотреть</button><button data-f="off">Отключить</button>
             </div>
+            <div class="seg" role="group" aria-label="Статус в Meta" id="sfilter">
+              <button data-f="" aria-pressed="true">Любой статус</button><button data-f="on">Активные</button><button data-f="off">Остановленные</button>
+            </div>
           </div>
           <div class="tbl"><table id="ads"><thead><tr>
             <th data-k="name">Объявление</th><th data-k="spendK">Расход</th><th data-k="conversations">Переписки</th><th data-k="cpc">Цена переписки</th>
@@ -464,7 +472,7 @@ const SB=window.supabase.createClient("https://kuovnefojyjxuquidbvn.supabase.co"
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 const pad=n=>String(n).padStart(2,"0"), ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`, addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const S={view:"overview",preset:store.get("preset","7"),from:"",to:"",doctor:store.get("doctor",""),cur:store.get("cur2","USD"),rate:store.get("rate",500),target:store.get("target_b",10000),
-  q:"",vf:"",sort:{k:"spendK",dir:-1},perf:[],daily:[],codes:[],stages:[],log:[],chats:[],mcp:null,loaded:false};
+  q:"",vf:"",sf:"",sort:{k:"spendK",dir:-1},perf:[],daily:[],codes:[],stages:[],log:[],chats:[],mcp:null,loaded:false};
 if(!String(S.doctor).includes(":"))S.doctor="";
 const STAGE_NAMES={80710998:"Алматы · Неразобранное",80798278:"Алматы · Новая заявка",80711002:"Алматы · Квалификация",87970354:"Алматы · Нет ответа",87970358:"Алматы · Перезвонить позже",80798370:"Алматы · Записан на прием",87973114:"Алматы · Не пришел — перезапись",142:"Успешно",143:"Нереализовано",89693378:"Шымкент · Неразобранное",89693778:"Шымкент · Лиды",89693782:"Шымкент · Квалификация",89693786:"Шымкент · Записаны на приём",89693790:"Шымкент · Без ответа",89693794:"Шымкент · Отказали",89696238:"Шымкент · Операция болды",89696338:"Шымкент · Келмеді"};
 const TRACK_FROM="2026-11-14";
@@ -494,6 +502,13 @@ const GROUPS=[
 const groupOf=code=>GROUPS.find(g=>g.pre.includes(String(code||"")[0]))||null;
 const inFilter=code=>{const g=groupOf(code);if(!S.doctor)return true;if(!g)return false;const[t,v]=S.doctor.split(":");return t==="br"?g.br===v:g.id===v};
 const BRANCH_CODE={ala:"ALA",akt:"SCO",cit:"CIT"};
+// статус объявления в Meta (effective_status, обновляется каждый час)
+const ST_LABEL={ACTIVE:["on","Активно"],PAUSED:["","Остановлено"],ADSET_PAUSED:["","Группа остановлена"],CAMPAIGN_PAUSED:["","Кампания остановлена"],
+  WITH_ISSUES:["bad","Есть проблема"],DISAPPROVED:["bad","Отклонено"],PENDING_REVIEW:["","На проверке"],IN_PROCESS:["","На проверке"],
+  ARCHIVED:["","В архиве"],DELETED:["","Удалено"]};
+const statusOf=code=>((S.codes||[]).find(c=>c.code===code)||{}).meta_status||null;
+const isActive=code=>statusOf(code)==="ACTIVE";
+const stBadge=s=>{if(!s||s==="SOURCE")return"";const[c,t]=ST_LABEL[s]||["",s];return `<span class="st ${c}">${esc(t)}</span>`};
 const dt=s=>new Date(s).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 
 function applyPreset(p){const t=new Date();let f=t,e=t;
@@ -581,7 +596,10 @@ function renderOverview(R){
   $("#groups").innerHTML=GROUPS.filter(g=>inFilter(g.pre[0]+"00")).map(g=>{
     const D=P.filter(r=>groupOf(r.code)===g),sp=sum(D,"spendK"),bk=sum(D,"booked"),ld=sum(D,"leads"),cv=sum(D,"conversations");
     const wa=(S.channels||[]).includes(BRANCH_CODE[g.br]);
-    return `<div class="card doc"><div class="who"><div class="avatar br-${g.br}">${g.name[0]}</div><div><b>${esc(g.name)}</b><small>${esc(g.note)}</small></div></div>
+    // сколько объявлений группы сейчас крутится в Meta (не зависит от выбранного периода)
+    const GC=(S.codes||[]).filter(c=>groupOf(c.code)===g&&c.meta_status&&c.meta_status!=="SOURCE"),act=GC.filter(c=>c.meta_status==="ACTIVE").length;
+    const gst=!GC.length?"":act?`<span class="st on" title="Объявлений в показе сейчас">Активно · ${act} из ${GC.length}</span>`:`<span class="st" title="Ни одно объявление группы сейчас не показывается">Не активна</span>`;
+    return `<div class="card doc"><div class="who"><div class="avatar br-${g.br}">${g.name[0]}</div><div><b>${esc(g.name)}</b><small>${esc(g.note)}</small></div>${gst}</div>
       ${wa?"":`<span class="flag">WhatsApp филиала ещё не подключён — чаты и записи не считаются</span>`}
       <dl class="stats"><div><dt>Расход</dt><dd>${money(sp)}</dd></div><div><dt>Переписки</dt><dd>${fmt(cv)}</dd></div>
       <div><dt>С кодом</dt><dd>${fmt(ld)}</dd></div><div><dt>Записались</dt><dd>${fmt(bk)}</dd></div>
@@ -594,7 +612,7 @@ function renderOverview(R){
   const withSpend=R.filter(r=>r.spendK>0);
   const best=withSpend.filter(r=>r.booked>0).sort((a,b)=>a.cpb-b.cpb).slice(0,5);
   const worst=withSpend.filter(r=>r.verdict[0]==="off"||r.verdict[0]==="fix").sort((a,b)=>b.spendK-a.spendK).slice(0,5);
-  const item=(r,right,sub)=>`<div class="it">${thumb(r.code)}<span class="code">${esc(r.code)}</span><div class="grow"><b>${esc(r.name)}</b><small>${esc(r.adset_name||"")}</small></div><div class="num">${right}<small>${sub}</small></div></div>`;
+  const item=(r,right,sub)=>`<div class="it">${thumb(r.code)}<span class="code">${esc(r.code)}</span><div class="grow"><b>${esc(r.name)}</b><small>${stBadge(statusOf(r.code))} ${esc(r.adset_name||"")}</small></div><div class="num">${right}<small>${sub}</small></div></div>`;
   $("#best").innerHTML=best.length?best.map(r=>item(r,money(r.cpb),`${r.booked} ${plural(r.booked,"запись","записи","записей")} · ${money(r.spendK)}`)).join(""):`<div class="empty"><b>Записей пока нет</b>Здесь появятся объявления с самой дешёвой записью.</div>`;
   $("#worst").innerHTML=worst.length?worst.map(r=>item(r,money(r.spendK),r.verdict[1])).join(""):`<div class="empty"><b>Всё в порядке</b>Нет объявлений, которые тратят больше цели без записей.</div>`;
 }
@@ -624,11 +642,12 @@ function renderAds(R){
   let A=R.filter(r=>r.spendK>0||r.leads>0);
   if(q)A=A.filter(r=>[r.name,r.code,r.adset_name,r.campaign_name].join(" ").toLowerCase().includes(q));
   if(S.vf)A=A.filter(r=>r.verdict[0]===S.vf);
+  if(S.sf)A=A.filter(r=>S.sf==="on"?isActive(r.code):!isActive(r.code));
   const{k:sk,dir}=S.sort;
   A.sort((a,b)=>{const x=a[sk],y=b[sk];if(x==null)return 1;if(y==null)return -1;return(typeof x==="string"?x.localeCompare(y):x-y)*dir});
   document.querySelectorAll("#ads th").forEach(th=>th.dataset.k===sk?th.setAttribute("aria-sort",dir>0?"ascending":"descending"):th.removeAttribute("aria-sort"));
   $("#ads tbody").innerHTML=A.length?A.map(r=>`<tr>
-    <td><div class="adcell">${thumb(r.code,true)}<div><div class="ad">${esc(r.name)}</div><div class="meta"><span class="code">${esc(r.code)}</span> ${esc(r.adset_name||"")} · ${esc(r.campaign_name||"")}</div></div></div></td>
+    <td><div class="adcell">${thumb(r.code,true)}<div><div class="ad">${esc(r.name)}</div><div class="meta"><span class="code">${esc(r.code)}</span> ${stBadge(statusOf(r.code))} ${esc(r.adset_name||"")} · ${esc(r.campaign_name||"")}</div></div></div></td>
     <td data-l="Расход">${money(r.spendK)}</td><td data-l="Переписки">${fmt(r.conversations)}</td><td data-l="Цена переписки">${r.cpc==null?'<span class="dim">—</span>':money(r.cpc)}</td>
     <td data-l="С кодом">${fmt(r.leads)}</td><td data-l="Записались"><b>${fmt(r.booked)}</b></td><td data-l="Цена записи">${r.cpb==null?'<span class="dim">—</span>':money(r.cpb)}</td>
     <td class="full"><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span>${r.fat?` <span class="chip fix" title="Цена переписки за последние 7 дней против предыдущих 7">Креатив устал +${r.fat}%</span>`:""}<span class="why">${esc(r.why)}${r.fat?". Переписка за неделю подорожала на "+r.fat+"% — пора обновить креатив":""}</span></td></tr>`).join("")
@@ -785,6 +804,7 @@ $("#refresh").addEventListener("click",load);
 $("#sortSel").addEventListener("change",e=>{S.sort={k:e.target.value,dir:-1};renderAds(rows())});
 $("#q").addEventListener("input",e=>{S.q=e.target.value;renderAds(rows())});
 document.querySelectorAll("#vfilter button").forEach(b=>b.addEventListener("click",()=>{S.vf=b.dataset.f;document.querySelectorAll("#vfilter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderAds(rows())}));
+document.querySelectorAll("#sfilter button").forEach(b=>b.addEventListener("click",()=>{S.sf=b.dataset.f;document.querySelectorAll("#sfilter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderAds(rows())}));
 document.querySelectorAll("#ads th").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.k;S.sort={k,dir:S.sort.k===k?-S.sort.dir:(k==="name"?1:-1)};renderAds(rows())}));
 $("#cur").addEventListener("change",e=>{S.cur=e.target.value;store.set("cur2",S.cur);render()});
 $("#rate").addEventListener("change",e=>{S.rate=Number(e.target.value)||1;store.set("rate",S.rate);render()});
