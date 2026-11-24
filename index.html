@@ -116,7 +116,7 @@ button,select,input{font:inherit;color:inherit}
 .st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55}
 .st.on{color:var(--good)}.st.on::before{opacity:1;box-shadow:0 0 0 3px var(--good-soft)}
 .st.bad{color:var(--bad)}.st.bad::before{opacity:1}
-.doc .who .st{margin-left:auto;align-self:flex-start}
+.doc>.st{align-self:flex-start;margin-top:-6px;white-space:normal}
 .flag{font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:2px 8px;align-self:flex-start}
 @media (max-width:640px){.funnel-h{grid-template-columns:minmax(0,1fr)}}
 .fstep .row{display:flex;justify-content:space-between;gap:10px;font-size:13px}
@@ -599,7 +599,7 @@ function renderOverview(R){
     // сколько объявлений группы сейчас крутится в Meta (не зависит от выбранного периода)
     const GC=(S.codes||[]).filter(c=>groupOf(c.code)===g&&c.meta_status&&c.meta_status!=="SOURCE"),act=GC.filter(c=>c.meta_status==="ACTIVE").length;
     const gst=!GC.length?"":act?`<span class="st on" title="Объявлений в показе сейчас">Активно · ${act} из ${GC.length}</span>`:`<span class="st" title="Ни одно объявление группы сейчас не показывается">Не активна</span>`;
-    return `<div class="card doc"><div class="who"><div class="avatar br-${g.br}">${g.name[0]}</div><div><b>${esc(g.name)}</b><small>${esc(g.note)}</small></div>${gst}</div>
+    return `<div class="card doc"><div class="who"><div class="avatar br-${g.br}">${g.name[0]}</div><div><b>${esc(g.name)}</b><small>${esc(g.note)}</small></div></div>${gst}
       ${wa?"":`<span class="flag">WhatsApp филиала ещё не подключён — чаты и записи не считаются</span>`}
       <dl class="stats"><div><dt>Расход</dt><dd>${money(sp)}</dd></div><div><dt>Переписки</dt><dd>${fmt(cv)}</dd></div>
       <div><dt>С кодом</dt><dd>${fmt(ld)}</dd></div><div><dt>Записались</dt><dd>${fmt(bk)}</dd></div>
