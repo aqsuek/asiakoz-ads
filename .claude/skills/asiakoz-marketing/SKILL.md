@@ -52,7 +52,8 @@ description: Asia Köz (Азиякөз) көз клиникасының марк
 - **Айлық план**: мақсат (KPI), фокус процедура, акция, кампаниялар (филиал × дәрігер × күндер × бюджет $/күн), контент тақырыптары, жауапты.
 - **Апталық план**: күн бойынша — іске қосу/өшіру, креатив, рассылка, пост/reels, тексеру метрикасы.
 - **Креатив брифі**: хук (қазақша + орысша), оффер, CTA → WhatsApp код, формат (reels/story/carousel).
-- Жоспар беті: `marketing-plan/index.html` (.gitignore-да — ads.asiakoz.com-ға шықпайды, өйткені табыс цифрлары бар). Жаңартқанда осы файлды өңдеп, Artifact ретінде https://claude.ai/artifact/QGsFAVCaxYnCazdcRVsdvh мекенжайына қайта жарияла. «Осы апта» бөлімін (#now) және тапсырмалар localStorage кілтін (`asiakoz-plan-tasks-<апта басы>`) әр апта жаңарт.
+- **Жоспар беті** ads.asiakoz.com → «План» бөлімінде. Репо ашық, сондықтан жоспар мәтіні репода емес, Supabase-те: `public.ad_plan_doc` (id=1, `html`). Панель оны `ad_panel_plan()` арқылы тек «Маркетинг» рұқсаты барларға көрсетеді. Жаңарту: `update public.ad_plan_doc set html = $plan$…$plan$, updated_at = now() where id = 1`. HTML-де тек `p-` префиксті класстар (стилі `index.html`-де `#planDoc` астында): p-intro, p-head, p-sub, p-card, p-grid p-g2/p-g3, p-ab/p-col/p-row, p-pill (p-ok/p-warn/p-bad), p-callout, p-tbl, p-month/p-when/p-tags, p-week/p-day/p-d, p-check, p-src, p-foot. Бөлім id-лері: a-b, strategy, channels, offers, months, weeks, now, rules. Тапсырмалар тізімінде `id="planTasks" data-key="asiakoz-plan-tasks-<апта басы>"` және `pt1…` id-лері — әр апта кілтті жаңарт. Жергілікті көшірме: `marketing-plan/` (gitignored), Artifact: https://claude.ai/artifact/QGsFAVCaxYnCazdcRVsdvh.
+- **Продажи** бөлімі: `ad_panel_sales(p_from, p_to)` — менеджерге келген пациенттер, диагноз тобы (`ad_sales_category`), статус, келісім, бас тарту себебі (`ad_sales_reason`). Әзірге тек Алматы деректері бар.
 
 ## Көмекші скилдар (осы жобада орнатылған)
 

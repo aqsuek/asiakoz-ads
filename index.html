@@ -324,6 +324,68 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
 .rt th,.rt td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 .rt th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .rt th:first-child,.rt td:first-child{text-align:left;white-space:normal}.rt tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+/* План (текст хранится в базе, классы с префиксом p-) и Продажи */
+body.v-plan #presets,body.v-plan .dates,body.v-plan #doctor,body.v-plan #refresh{display:none}
+body.v-sales #presets button[data-p="today"],body.v-sales #presets button[data-p="yesterday"]{display:none}
+#planDoc{max-width:1040px;line-height:1.55;font-size:14.5px}
+#planDoc section{padding-block:26px;border-top:1px solid var(--line)}
+#planDoc h1{font-family:var(--f-display);font-size:clamp(22px,3vw,30px);line-height:1.2;margin:.2em 0 .4em;text-wrap:balance}
+#planDoc h2{font-family:var(--f-display);font-size:19px;font-weight:600;margin:0 0 4px;text-wrap:balance}
+#planDoc h3{font-size:15px;margin:0 0 6px}
+#planDoc p{margin:0 0 8px;max-width:70ch}
+#planDoc ul{margin:6px 0 0;padding-left:18px}#planDoc li{margin:3px 0}
+#planDoc .p-intro{padding-bottom:18px}
+#planDoc .p-eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#planDoc .p-lede{font-size:16px;color:var(--muted)}
+#planDoc .p-head{margin-bottom:14px}
+#planDoc .p-sub,#planDoc .p-src{color:var(--muted);font-size:13px}
+#planDoc .p-src{font-size:12px;margin-top:8px}
+#planDoc .p-grid{display:grid;gap:14px}
+#planDoc .p-g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+#planDoc .p-g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+#planDoc .p-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;min-width:0}
+#planDoc .p-ab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+#planDoc .p-col{padding:16px 18px;min-width:0}#planDoc .p-col+.p-col{border-left:1px solid var(--line)}
+#planDoc .p-lbl{font-family:var(--f-display);font-size:13px;letter-spacing:.04em;margin-bottom:8px}
+#planDoc .p-a .p-lbl{color:var(--bad)}#planDoc .p-b .p-lbl{color:var(--good)}
+@media (max-width:640px){#planDoc .p-ab{grid-template-columns:minmax(0,1fr)}#planDoc .p-col+.p-col{border-left:0;border-top:1px solid var(--line)}}
+#planDoc .p-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px dashed var(--line);font-size:13.5px}
+#planDoc .p-row:first-of-type{border-top:0}
+#planDoc .p-row b{font-variant-numeric:tabular-nums;text-align:right}
+#planDoc .p-big{font-family:var(--f-display);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+#planDoc .p-pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+#planDoc .p-pill.p-warn{background:var(--warn-soft);color:var(--warn)}#planDoc .p-pill.p-bad{background:var(--bad-soft);color:var(--bad)}#planDoc .p-pill.p-ok{background:var(--good-soft);color:var(--good)}
+#planDoc .p-callout{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+#planDoc .p-callout p{margin:0}
+#planDoc .p-tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+#planDoc table{min-width:720px}
+#planDoc th,#planDoc td{text-align:left;white-space:normal;vertical-align:top}
+#planDoc td.p-num{white-space:nowrap;font-variant-numeric:tabular-nums}
+#planDoc .p-month{display:grid;grid-template-columns:130px minmax(0,1fr);gap:18px;padding:16px 0;border-top:1px solid var(--line)}
+#planDoc .p-month:first-child{border-top:0}
+#planDoc .p-when{font-family:var(--f-display);font-weight:600}
+#planDoc .p-when small{display:block;font-family:var(--f-body);font-weight:400;font-size:12px;color:var(--muted);margin-top:4px}
+#planDoc .p-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+@media (max-width:640px){#planDoc .p-month{grid-template-columns:minmax(0,1fr);gap:6px}}
+#planDoc .p-week{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+#planDoc .p-day{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;padding:11px 16px;border-top:1px solid var(--line)}
+#planDoc .p-day:first-child{border-top:0}
+#planDoc .p-d{font-weight:600}#planDoc .p-d small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+@media (max-width:520px){#planDoc .p-day{grid-template-columns:minmax(0,1fr);gap:2px}}
+#planDoc .p-check{list-style:none;padding:0;margin:0}
+#planDoc .p-check li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line);margin:0}
+#planDoc .p-check li:first-child{border-top:0}
+#planDoc .p-check input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+#planDoc .p-check label{cursor:pointer}
+#planDoc .p-foot{color:var(--muted);font-size:13px;padding-top:18px;border-top:1px solid var(--line)}
+.planbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.planbar a{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:5px 10px;border-radius:8px;background:var(--chip)}
+.planbar a:hover,.planbar a:focus-visible{color:var(--accent);background:var(--accent-soft)}
+.sbar{display:flex;align-items:center;gap:10px;font-size:13px}
+.sbar .track{flex:1;height:8px;border-radius:4px;background:var(--sunk);overflow:hidden;min-width:60px}
+.sbar .track i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.pct{font-weight:600;font-variant-numeric:tabular-nums}
+.pct.lo{color:var(--bad)}.pct.mid{color:var(--warn)}.pct.hi{color:var(--good)}
 @media print{.side,.top,#notice,.noprint,#pv{display:none!important}.app,.main,.content{display:block!important;margin:0!important;padding:0!important;max-width:none!important}
   body{background:#fff!important}.card{box-shadow:none!important;border:0!important;padding:0!important;background:#fff!important}.rt{font-size:11px}#report h2{break-after:avoid}.rt tr{break-inside:avoid}}
 </style>
@@ -348,6 +410,8 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
     <div class="logo"><div class="mark"><i></i></div><div><b>Азиякөз</b><span>реклама и записи</span></div></div>
     <nav class="nav" aria-label="Разделы">
       <a href="#overview" data-v="overview"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zM13 21h8v-8h-8zM13 3v6h8V3zM3 21h8v-4H3z"/></svg><span class="lbl">Обзор</span></a>
+      <a href="#sales" data-v="sales"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0M4 21a8 8 0 0 1 16 0M12 3v4"/></svg><span class="lbl">Продажи</span></a>
+      <a href="#plan" data-v="plan"><svg viewBox="0 0 24 24"><path d="M4 5h16v15H4zM4 10h16M9 3v4M15 3v4"/></svg><span class="lbl">План</span></a>
       <a href="#ads" data-v="ads"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lbl">Объявления</span></a>
       <a href="#chats" data-v="chats"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg><span class="lbl">Чаты</span><span class="cnt" id="chatCnt" hidden></span></a>
       <a href="#report" data-v="report"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7"/></svg><span class="lbl">Отчёт</span></a>
@@ -389,6 +453,29 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
         <div class="grid2">
           <div class="card"><h2>Лучшие объявления</h2><p class="sub">Самая низкая цена записи</p><div class="mini" id="best"></div></div>
           <div class="card"><h2>Требуют внимания</h2><p class="sub">Тратят деньги, а записей нет или запись дорогая</p><div class="mini" id="worst"></div></div>
+        </div>
+      </section>
+
+      <section data-view="sales" hidden>
+        <div class="kpis" id="sKpis"></div>
+        <div class="card"><h2>Где пациенты сейчас</h2><p class="sub">Все, кто был у менеджера по продажам после консультации врача, по текущему статусу рекомендации</p><div id="sStatus"></div></div>
+        <div class="card"><h2>По диагнозам</h2><p class="sub">Направление операции, которую рекомендовал врач. Если рекомендовано несколько операций, строка относится к самой крупной</p><div id="sCat"></div></div>
+        <div class="grid2">
+          <div class="card"><h2>По врачам</h2><p class="sub">Кто рекомендовал операцию</p><div id="sDoc"></div></div>
+          <div class="card"><h2>По менеджерам</h2><p class="sub">Кто вёл пациента после консультации</p><div id="sMgr"></div></div>
+        </div>
+        <div class="grid2">
+          <div class="card"><h2>По неделям</h2><p class="sub">Неделя консультации, с понедельника</p><div id="sWeek"></div></div>
+          <div class="card"><h2>Причины отказа и отсрочки</h2><p class="sub">Как записал менеджер, самые частые</p><div class="list" id="sWhy"></div></div>
+        </div>
+        <p class="fnote" id="sNote"></p>
+      </section>
+
+      <section data-view="plan" hidden>
+        <div class="card">
+          <nav class="planbar" aria-label="Разделы плана"><a href="#plan" data-jump="a-b">А → Б</a><a href="#plan" data-jump="strategy">Стратегия</a><a href="#plan" data-jump="channels">Каналы</a><a href="#plan" data-jump="offers">Акции</a><a href="#plan" data-jump="months">По месяцам</a><a href="#plan" data-jump="weeks">Неделя</a><a href="#plan" data-jump="now">Эта неделя</a><a href="#plan" data-jump="rules">Правила</a></nav>
+          <div id="planDoc"><div class="empty">Загрузка…</div></div>
+          <p class="fnote" id="planNote"></p>
         </div>
       </section>
 
@@ -477,7 +564,7 @@ if(!String(S.doctor).includes(":"))S.doctor="";
 const STAGE_NAMES={80710998:"Алматы · Неразобранное",80798278:"Алматы · Новая заявка",80711002:"Алматы · Квалификация",87970354:"Алматы · Нет ответа",87970358:"Алматы · Перезвонить позже",80798370:"Алматы · Записан на прием",87973114:"Алматы · Не пришел — перезапись",142:"Успешно",143:"Нереализовано",89693378:"Шымкент · Неразобранное",89693778:"Шымкент · Лиды",89693782:"Шымкент · Квалификация",89693786:"Шымкент · Записаны на приём",89693790:"Шымкент · Без ответа",89693794:"Шымкент · Отказали",89696238:"Шымкент · Операция болды",89696338:"Шымкент · Келмеді"};
 const TRACK_FROM="2026-11-14";
 const stageLabel=(name,id)=>String(name||STAGE_NAMES[id]||("Этап "+id));
-const TITLES={overview:"Обзор",ads:"Объявления",chats:"Чаты",report:"Отчёт",codes:"Коды",setup:"Настройка"};
+const TITLES={overview:"Обзор",sales:"Продажи",plan:"План",ads:"Объявления",chats:"Чаты",report:"Отчёт",codes:"Коды",setup:"Настройка"};
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -534,6 +621,7 @@ async function load(){
     if(S.from<TRACK_FROM)notice("","Чаты WhatsApp считаются с 14.11.","Расход, переписки Meta и все записи amoCRM есть и за более ранние дни, а лиды (с кодом и без) и записи из чатов — только с 14.11.");else notice();
   }catch(e){const[t,x]=errorCopy(e);notice("bad",t,x)}
   b.classList.remove("spin");render();if(S.view==="report"&&!REP.data)loadReport($("#repMonth").value);
+  if(S.view==="sales")loadSales(true);if(S.view==="plan")loadPlan();
 }
 
 function trackedDays(){const f=S.from>TRACK_FROM?S.from:TRACK_FROM;return Math.max(0,Math.round((new Date(S.to)-new Date(f))/864e5)+1)}
@@ -562,6 +650,7 @@ function render(){
   $("#cur").value=S.cur;$("#rate").value=S.rate;$("#target").value=S.target;$("#rate").disabled=S.cur!=="USD";
   const R=rows();
   renderFeed();renderOverview(R);renderAds(R);renderChats();renderCodes();renderSetup();
+  if(SALES.data)renderSales();
 }
 
 function renderFeed(){
@@ -789,7 +878,71 @@ function renderReport(){
 (function(){const sel=$("#repMonth");sel.innerHTML=repMonths().map(m=>{const[y,mo]=m.split("-").map(Number);return `<option value="${m}">${MONTHS[mo-1]} ${y}</option>`}).join("");
   sel.addEventListener("change",()=>loadReport(sel.value));$("#repPrint").addEventListener("click",()=>window.print())})();
 
+// ---------- продажи: рекомендации врача → решение пациента ----------
+const SALES={key:"",data:null,busy:false};
+const ST_RU={new_recommendation:"Новая, ещё не связывались",contacted:"Связались",thinking:"Думает",follow_up:"Перезвонить",postponed:"Отложил",scheduled:"Записан на операцию",completed:"Операция сделана",lost:"Отказ"};
+const ST_ORDER=["new_recommendation","contacted","thinking","follow_up","postponed","scheduled","completed","lost"];
+const BR_RU={ALA:"Алматы",SCO:"Ақтау",CIT:"Шымкент"};
+const mln=n=>(n>=1e6?(n/1e6).toFixed(1).replace(".",",")+" млн ₸":money(n));
+const pctCls=p=>p==null?"":p<.2?"lo":p<.35?"mid":"hi";
+const pctH=(a,b)=>{if(!b)return"—";const p=a/b;return `<span class="pct ${pctCls(p)}">${Math.round(p*100)}%</span>`};
+function salesBranch(){if(!S.doctor)return null;const[t,v]=S.doctor.split(":");const br=t==="br"?v:((GROUPS.find(g=>g.id===v)||{}).br||"");return br?BRANCH_CODE[br]:null}
+async function loadSales(force){
+  const key=S.from+"|"+S.to;if(!force&&SALES.key===key&&SALES.data){renderSales();return}
+  SALES.key=key;$("#sKpis").innerHTML="";$("#sStatus").innerHTML=`<div class="empty">Загрузка…</div>`;
+  try{const{data,error}=await SB.rpc("ad_panel_sales",{p_from:S.from,p_to:S.to});if(error)throw error;if(SALES.key!==key)return;SALES.data=data||{rows:[]};renderSales()}
+  catch(e){const[t,x]=errorCopy(e);$("#sStatus").innerHTML=`<div class="empty"><b>${esc(t)}</b>${esc(x)}</div>`}
+}
+function salesAgg(R,by){const m=new Map();for(const r of R){const k=by(r);const a=m.get(k)||{k,n:0,ag:0,done:0,lost:0,wait:0,amt:0,agAmt:0};
+  const n=Number(r.n),amt=Number(r.amt);a.n+=n;a.amt+=amt;if(r.agreed){a.ag+=n;a.agAmt+=amt}if(r.st==="completed")a.done+=n;if(r.st==="lost")a.lost+=n;if(r.st==="new_recommendation")a.wait+=n;m.set(k,a)}
+  return[...m.values()].sort((a,b)=>b.n-a.n)}
+function salesTable(first,A,withAmt=true){if(!A.length)return `<div class="empty">Нет данных за период</div>`;
+  const T=A.reduce((t,a)=>{for(const k of["n","ag","done","lost","wait","amt","agAmt"])t[k]+=a[k];return t},{k:"Итого",n:0,ag:0,done:0,lost:0,wait:0,amt:0,agAmt:0});
+  const row=(a,cls)=>`<tr${cls?' class="tot"':""}><td>${esc(a.k)}</td><td>${fmt(a.n)}</td><td>${fmt(a.ag)}</td><td>${pctH(a.ag,a.n)}</td><td>${fmt(a.done)}</td><td>${fmt(a.lost)}</td><td>${fmt(a.wait)}</td>${withAmt?`<td>${mln(a.amt)}</td><td>${mln(a.agAmt)}</td>`:""}</tr>`;
+  return `<div class="rt-w"><table class="rt"><thead><tr><th>${first}</th><th>Пациентов</th><th>Согласились</th><th>Конверсия</th><th>Сделано</th><th>Отказ</th><th>Не звонили</th>${withAmt?"<th>Рекомендовано</th><th>Согласовано</th>":""}</tr></thead><tbody>${A.map(a=>row(a)).join("")}${A.length>1?row(T,1):""}</tbody></table></div>`}
+function renderSales(){
+  const D=SALES.data;if(!D)return;const br=salesBranch();const R=(D.rows||[]).filter(r=>!br||r.br===br);
+  const tot=salesAgg(R,()=>"all")[0]||{n:0,ag:0,done:0,lost:0,wait:0,amt:0,agAmt:0};
+  const k=(l,v,s,cls="")=>`<div class="kpi ${cls}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+  $("#sKpis").innerHTML=
+    k("Были у менеджера",fmt(tot.n),"после консультации врача")+
+    k("Согласились",fmt(tot.ag),tot.n?`${Math.round(tot.ag/tot.n*100)}% от всех · цель 40%`:"—")+
+    k("Операция сделана",fmt(tot.done),tot.n?`${Math.round(tot.done/tot.n*100)}% от всех`:"—")+
+    k("Ещё не связывались",fmt(tot.wait),tot.wait?"их нужно обзвонить в первую очередь":"все в работе",tot.wait?"":"")+
+    k("Сумма рекомендаций",mln(tot.amt),`согласовано ${mln(tot.agAmt)}`,"key");
+  const bySt=new Map();for(const r of R){const a=bySt.get(r.st)||{n:0,amt:0};a.n+=Number(r.n);a.amt+=Number(r.amt);bySt.set(r.st,a)}
+  const mx=Math.max(1,...[...bySt.values()].map(a=>a.n));
+  $("#sStatus").innerHTML=R.length?ST_ORDER.filter(s=>bySt.has(s)).map(s=>{const a=bySt.get(s);
+    return `<div class="sbar" style="padding:7px 0"><span style="width:210px;flex:none">${ST_RU[s]||esc(s)}</span><span class="track"><i style="width:${a.n/mx*100}%;${s==="lost"?"background:var(--bad)":s==="new_recommendation"?"background:var(--warn)":s==="completed"||s==="scheduled"?"background:var(--good)":""}"></i></span><b style="width:52px;text-align:right">${fmt(a.n)}</b><span class="dim" style="width:96px;text-align:right">${mln(a.amt)}</span></div>`}).join("")
+    :`<div class="empty"><b>За этот период консультаций нет</b>Данные о рекомендациях есть с ${esc((D.range||{}).min||"—")} по ${esc((D.range||{}).max||"—")}.</div>`;
+  $("#sCat").innerHTML=salesTable("Диагноз / операция",salesAgg(R,r=>r.cat));
+  $("#sDoc").innerHTML=salesTable("Врач",salesAgg(R,r=>r.doc),false);
+  $("#sMgr").innerHTML=salesTable("Менеджер",salesAgg(R,r=>r.mgr),false);
+  const W=salesAgg(R,r=>r.wk).sort((a,b)=>a.k<b.k?-1:1).map(a=>({...a,k:a.k?a.k.slice(8,10)+"."+a.k.slice(5,7):"—"}));
+  $("#sWeek").innerHTML=salesTable("Неделя с",W,false);
+  const Y=(D.reasons||[]).filter(r=>!br||r.br===br).slice(0,12);
+  $("#sWhy").innerHTML=Y.length?Y.map(r=>`<div class="li"><div class="grow">${esc(r.reason)}</div><b>${fmt(r.n)}</b></div>`).join(""):`<div class="empty">Причины не записаны</div>`;
+  const brs=[...new Set((D.rows||[]).map(r=>r.br))].map(b=>BR_RU[b]||b).join(", ");
+  $("#sNote").textContent=`Источник: рекомендации операций в AsiaKoz Analytics (дата консультации). Сейчас данные есть по филиалам: ${brs||"—"}. «Согласились» — записан на операцию, операция сделана или пациент дал согласие.`;
+}
+
+// ---------- план (текст в базе, доступ только с разделом «Маркетинг») ----------
+const PLAN={loaded:false};
+async function loadPlan(){
+  if(PLAN.loaded)return;
+  try{const{data,error}=await SB.rpc("ad_panel_plan");if(error)throw error;
+    const doc=$("#planDoc");doc.innerHTML=(data&&data.html)||`<div class="empty"><b>План пока пустой</b></div>`;PLAN.loaded=true;
+    if(data&&data.updated_at)$("#planNote").textContent="План обновлён "+dt(data.updated_at)+".";
+    const L=doc.querySelector("[data-key]");if(L){const key=L.dataset.key;const saved=store.get(key,{});
+      L.querySelectorAll("input[type=checkbox]").forEach(cb=>{cb.checked=!!saved[cb.id];cb.addEventListener("change",()=>{saved[cb.id]=cb.checked;store.set(key,saved)})})}
+  }catch(e){const[t,x]=errorCopy(e);$("#planDoc").innerHTML=`<div class="empty"><b>${esc(t)}</b>${esc(x)}</div>`}
+}
+document.addEventListener("click",e=>{const a=e.target.closest("[data-jump]");if(!a)return;e.preventDefault();
+  const el=document.getElementById(a.dataset.jump);if(el)el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
+
 function show(v){if(!TITLES[v])v="overview";S.view=v;
+  document.body.classList.toggle("v-plan",v==="plan");document.body.classList.toggle("v-sales",v==="sales");
+  if(v==="plan"&&S.loaded)loadPlan();if(v==="sales"&&S.loaded)loadSales();
   document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll(".nav a").forEach(a=>a.dataset.v===v?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
   $("#pageTitle").textContent=TITLES[v];
@@ -846,7 +999,7 @@ $("#loginForm").addEventListener("submit",async e=>{e.preventDefault();$("#login
   const{error}=await SB.auth.signInWithPassword({email:$("#em").value.trim(),password:$("#pw").value});
   if(error){$("#loginErr").textContent="Неверный email или пароль.";return}
   showApp(true);render();load();});
-document.addEventListener("click",async e=>{if(e.target.closest("#logout")){await SB.auth.signOut();showApp(false);}});
+document.addEventListener("click",async e=>{if(e.target.closest("#logout")){await SB.auth.signOut();PLAN.loaded=false;SALES.data=null;SALES.key="";$("#planDoc").innerHTML="";showApp(false);}});
 (async()=>{const{data}=await SB.auth.getSession();if(data.session){showApp(true);render();load();}else showApp(false);})();
 </script>
 </body>
