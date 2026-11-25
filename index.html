@@ -378,9 +378,29 @@ body.v-sales #presets button[data-p="today"],body.v-sales #presets button[data-p
 #planDoc .p-check input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
 #planDoc .p-check label{cursor:pointer}
 #planDoc .p-foot{color:var(--muted);font-size:13px;padding-top:18px;border-top:1px solid var(--line)}
-.planbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
-.planbar a{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:5px 10px;border-radius:8px;background:var(--chip)}
-.planbar a:hover,.planbar a:focus-visible{color:var(--accent);background:var(--accent-soft)}
+.ptabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin:-4px 0 4px}
+.ptabs button{flex:none;font:inherit;font-size:13.5px;font-weight:500;color:var(--muted);background:none;border:0;border-bottom:2px solid transparent;padding:9px 12px;cursor:pointer;white-space:nowrap}
+.ptabs button:hover{color:var(--ink)}
+.ptabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.ptabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+#planDoc section{border-top:0;padding-block:18px 6px}
+#planDoc .p-h3{margin:20px 0 6px}
+#planDoc .p-tbl{border-radius:12px}
+#planDoc .p-tbl table{min-width:560px}
+#planDoc .p-steps{margin:0;padding-left:22px;display:grid;gap:10px;max-width:72ch}
+#planDoc .p-steps li{margin:0;padding-left:4px}
+.ask{display:flex;flex-direction:column;gap:10px}
+.ask .log{display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto}
+.ask .msg-u{align-self:flex-end;background:var(--accent-soft);color:var(--ink);padding:9px 13px;border-radius:12px 12px 2px 12px;max-width:85%;white-space:pre-wrap}
+.ask .msg-a{align-self:flex-start;background:var(--sunk);padding:11px 14px;border-radius:12px 12px 12px 2px;max-width:100%;line-height:1.55;font-size:14px;overflow-x:auto}
+.ask .msg-a p{margin:0 0 8px}.ask .msg-a p:last-child{margin:0}.ask .msg-a ul,.ask .msg-a ol{margin:4px 0 8px;padding-left:20px}
+.ask .msg-a h4{margin:10px 0 4px;font-size:14px}
+.ask .msg-a table{min-width:0;width:auto;font-size:13px;margin:6px 0}.ask .msg-a th,.ask .msg-a td{text-align:left;padding:5px 8px}
+.ask .msg-e{align-self:flex-start;background:var(--bad-soft);padding:9px 13px;border-radius:12px;font-size:13px}
+.ask form{display:flex;gap:8px;align-items:flex-end}
+.ask textarea{flex:1;min-width:0;resize:vertical;min-height:44px;max-height:200px;font:inherit;font-size:14px}
+.ask .hints{display:flex;flex-wrap:wrap;gap:6px}
+.ask .hints button{font:inherit;font-size:12.5px;color:var(--accent);background:var(--accent-soft);border:0;border-radius:999px;padding:5px 11px;cursor:pointer}
 .sbar{display:flex;align-items:center;gap:10px;font-size:13px}
 .sbar .track{flex:1;height:8px;border-radius:4px;background:var(--sunk);overflow:hidden;min-width:60px}
 .sbar .track i{display:block;height:100%;background:var(--accent);border-radius:4px}
@@ -473,9 +493,15 @@ body.v-sales #presets button[data-p="today"],body.v-sales #presets button[data-p
 
       <section data-view="plan" hidden>
         <div class="card">
-          <nav class="planbar" aria-label="Разделы плана"><a href="#plan" data-jump="a-b">А → Б</a><a href="#plan" data-jump="strategy">Стратегия</a><a href="#plan" data-jump="channels">Каналы</a><a href="#plan" data-jump="offers">Акции</a><a href="#plan" data-jump="months">По месяцам</a><a href="#plan" data-jump="weeks">Неделя</a><a href="#plan" data-jump="now">Эта неделя</a><a href="#plan" data-jump="rules">Правила</a></nav>
+          <div class="ptabs" role="tablist" aria-label="Разделы плана" id="planTabs"></div>
           <div id="planDoc"><div class="empty">Загрузка…</div></div>
           <p class="fnote" id="planNote"></p>
+        </div>
+        <div class="card ask" id="ask">
+          <div><h2>Спросить Claude</h2><p class="sub" style="margin-bottom:0">Claude видит этот план и цифры панели за последние 30 дней: расход, записи, продажи по диагнозам. Отвечает на языке вопроса.</p></div>
+          <div class="hints" id="askHints"><button type="button">Что сделать на этой неделе в первую очередь?</button><button type="button">Почему так мало согласий по косоглазию?</button><button type="button">Напиши 3 текста для рассылки по катаракте на казахском</button></div>
+          <div class="log" id="askLog" aria-live="polite"></div>
+          <form id="askForm"><textarea class="field" id="askQ" rows="2" placeholder="Например: какой филиал сейчас самый дорогой и что с этим делать?" aria-label="Вопрос для Claude"></textarea><button class="btn" type="submit" id="askBtn">Спросить</button></form>
         </div>
       </section>
 
@@ -933,12 +959,44 @@ async function loadPlan(){
   try{const{data,error}=await SB.rpc("ad_panel_plan");if(error)throw error;
     const doc=$("#planDoc");doc.innerHTML=(data&&data.html)||`<div class="empty"><b>План пока пустой</b></div>`;PLAN.loaded=true;
     if(data&&data.updated_at)$("#planNote").textContent="План обновлён "+dt(data.updated_at)+".";
+    // каждая секция с data-title — отдельная вкладка
+    const secs=[...doc.querySelectorAll("section[data-title]")],tabs=$("#planTabs");
+    const pick=id=>{const s=secs.find(x=>x.id===id)||secs[0];if(!s)return;secs.forEach(x=>x.hidden=x!==s);
+      tabs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.t===s.id)));store.set("planTab",s.id)};
+    tabs.innerHTML=secs.map(s=>`<button type="button" role="tab" data-t="${esc(s.id)}">${esc(s.dataset.title)}</button>`).join("");
+    tabs.hidden=secs.length<2;tabs.onclick=e=>{const b=e.target.closest("button[data-t]");if(b)pick(b.dataset.t)};
+    pick(store.get("planTab",secs[0]&&secs[0].id));
     const L=doc.querySelector("[data-key]");if(L){const key=L.dataset.key;const saved=store.get(key,{});
       L.querySelectorAll("input[type=checkbox]").forEach(cb=>{cb.checked=!!saved[cb.id];cb.addEventListener("change",()=>{saved[cb.id]=cb.checked;store.set(key,saved)})})}
   }catch(e){const[t,x]=errorCopy(e);$("#planDoc").innerHTML=`<div class="empty"><b>${esc(t)}</b>${esc(x)}</div>`}
 }
-document.addEventListener("click",e=>{const a=e.target.closest("[data-jump]");if(!a)return;e.preventDefault();
-  const el=document.getElementById(a.dataset.jump);if(el)el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
+// ---------- Claude: вопросы по плану и цифрам (Edge Function ad-assistant) ----------
+const ASK={hist:[],busy:false};
+function md(src){ // небольшой безопасный markdown: заголовки, списки, жирный, таблицы, абзацы
+  const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");
+  const L=String(src||"").replace(/\r/g,"").split("\n"),out=[];let i=0;
+  while(i<L.length){const l=L[i];
+    if(/^\s*\|/.test(l)){const T=[];while(i<L.length&&/^\s*\|/.test(L[i]))T.push(L[i++]);
+      const rows=T.filter(r=>!/^\s*\|[\s:|-]+\|\s*$/.test(r)).map(r=>r.trim().replace(/^\||\|$/g,"").split("|").map(c=>inl(c.trim())));
+      out.push(`<table class="rt">${rows.map((r,k)=>`<tr>${r.map(c=>k?`<td>${c}</td>`:`<th>${c}</th>`).join("")}</tr>`).join("")}</table>`);continue}
+    if(/^#{1,4}\s/.test(l)){out.push(`<h4>${inl(l.replace(/^#+\s/,""))}</h4>`);i++;continue}
+    if(/^\s*([-*•]|\d+[.)])\s/.test(l)){const ol=/^\s*\d/.test(l),it=[];while(i<L.length&&/^\s*([-*•]|\d+[.)])\s/.test(L[i]))it.push(L[i++].replace(/^\s*([-*•]|\d+[.)])\s/,""));
+      out.push(`<${ol?"ol":"ul"}>${it.map(x=>`<li>${inl(x)}</li>`).join("")}</${ol?"ol":"ul"}>`);continue}
+    if(!l.trim()){i++;continue}
+    const P=[];while(i<L.length&&L[i].trim()&&!/^\s*(\||#{1,4}\s|[-*•]\s|\d+[.)]\s)/.test(L[i]))P.push(L[i++]);out.push(`<p>${P.map(inl).join("<br>")}</p>`)}
+  return out.join("")}
+function askAdd(cls,html){const d=document.createElement("div");d.className=cls;d.innerHTML=html;$("#askLog").appendChild(d);d.scrollIntoView({block:"nearest"});return d}
+async function ask(q){q=String(q||"").trim();if(!q||ASK.busy)return;ASK.busy=true;$("#askBtn").disabled=true;$("#askQ").value="";
+  askAdd("msg-u",esc(q));const w=askAdd("msg-a",`<span class="dim">Claude думает…</span>`);
+  try{const{data,error}=await SB.functions.invoke("ad-assistant",{body:{question:q,history:ASK.hist.slice(-6)}});
+    if(error){let m=error.message;try{const j=await error.context.json();m=j.error||m}catch{}throw new Error(m)}
+    if(!data||!data.answer)throw new Error((data&&data.error)||"Пустой ответ");
+    w.innerHTML=md(data.answer);ASK.hist.push({role:"user",content:q},{role:"assistant",content:data.answer});
+  }catch(e){w.className="msg-e";w.textContent="Не получилось: "+String(e.message||e).slice(0,300)}
+  ASK.busy=false;$("#askBtn").disabled=false}
+$("#askForm").addEventListener("submit",e=>{e.preventDefault();ask($("#askQ").value)});
+$("#askQ").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){e.preventDefault();ask($("#askQ").value)}});
+$("#askHints").addEventListener("click",e=>{const b=e.target.closest("button");if(b)ask(b.textContent)});
 
 function show(v){if(!TITLES[v])v="overview";S.view=v;
   document.body.classList.toggle("v-plan",v==="plan");document.body.classList.toggle("v-sales",v==="sales");
