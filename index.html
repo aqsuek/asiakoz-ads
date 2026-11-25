@@ -406,6 +406,28 @@ body.v-sales #presets button[data-p="today"],body.v-sales #presets button[data-p
 .sbar .track i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .pct{font-weight:600;font-variant-numeric:tabular-nums}
 .pct.lo{color:var(--bad)}.pct.mid{color:var(--warn)}.pct.hi{color:var(--good)}
+.phead{display:none}
+@media print{
+  @page{size:A4;margin:14mm 12mm}
+  html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact;color:#14232b!important}
+  body.v-sales .content>section[data-view="sales"]{display:block!important}
+  body.v-sales .phead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:14px}
+  .phead b{font-family:var(--f-display);font-size:20px;display:block}.phead .dim{display:block;margin-top:2px}.phead .m{font-size:12px;color:var(--muted);text-align:right;line-height:1.5}
+  body.v-sales .kpis{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important;margin-bottom:14px}
+  body.v-sales .kpis .kpi:last-child{grid-column:auto!important}
+  body.v-sales .kpi{box-shadow:none!important;border:1px solid #d9e2e6!important;border-radius:10px!important;padding:9px 10px!important;break-inside:avoid}
+  body.v-sales .kpi .v{font-size:20px!important;margin-top:4px!important;overflow:visible!important}
+  body.v-sales .kpi .l{font-size:8.5px!important}body.v-sales .kpi .s{font-size:9.5px!important}
+  body.v-sales .kpi.key{background:#0f3d4c!important;color:#fff!important}body.v-sales .kpi.key::after{display:none}
+  body.v-sales .grid2{display:block!important}
+  body.v-sales section[data-view="sales"] .card{margin:0 0 16px!important;break-inside:avoid}
+  body.v-sales section[data-view="sales"] .card h2{font-size:14px;break-after:avoid}
+  body.v-sales .card .sub{font-size:10.5px;margin-bottom:6px}
+  body.v-sales .sbar{font-size:11px}body.v-sales .sbar[style]{padding:4px 0!important}
+  body.v-sales .rt-w{overflow:visible!important}body.v-sales .rt{font-size:10.5px}body.v-sales .rt th,body.v-sales .rt td{padding:4px 6px}
+  body.v-sales .list .li{padding:5px 0;font-size:11px}
+  body.v-sales .fnote{font-size:9.5px}
+}
 @media print{.side,.top,#notice,.noprint,#pv{display:none!important}.app,.main,.content{display:block!important;margin:0!important;padding:0!important;max-width:none!important}
   body{background:#fff!important}.card{box-shadow:none!important;border:0!important;padding:0!important;background:#fff!important}.rt{font-size:11px}#report h2{break-after:avoid}.rt tr{break-inside:avoid}}
 </style>
@@ -449,6 +471,7 @@ body.v-sales #presets button[data-p="today"],body.v-sales #presets button[data-p
       </div>
       <div class="dates"><input class="field" type="date" id="from" aria-label="С даты"><span class="dim">—</span><input class="field" type="date" id="to" aria-label="По дату"></div>
       <select class="field" id="doctor" aria-label="Филиал или врач"><option value="">Все филиалы</option><optgroup label="Филиал"><option value="br:ala">Алматы</option><option value="br:akt">Ақтау</option><option value="br:cit">Шымкент</option></optgroup><optgroup label="Врач / кампания"><option value="g:talip">Талип</option><option value="g:mehmet">Мехмет</option><option value="g:alatraf">Алматы посты</option><option value="g:erol">Эрол</option><option value="g:ali">Али Кескин</option><option value="g:aktau">Ақтау жалпы</option><option value="g:shym">Шымкент</option></optgroup></select>
+      <button class="btn" id="salesPdf" type="button" hidden><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M12 11v6M9 14l3 3 3-3"/></svg>PDF</button>
       <button class="btn" id="refresh"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg>Обновить</button>
     </div></header>
 
@@ -477,6 +500,7 @@ body.v-sales #presets button[data-p="today"],body.v-sales #presets button[data-p
       </section>
 
       <section data-view="sales" hidden>
+        <div class="phead" id="sHead"></div>
         <div class="kpis" id="sKpis"></div>
         <div class="card"><h2>Где пациенты сейчас</h2><p class="sub">Все, кто был у менеджера по продажам после консультации врача, по текущему статусу рекомендации</p><div id="sStatus"></div></div>
         <div class="card"><h2>По диагнозам</h2><p class="sub">Направление операции, которую рекомендовал врач. Если рекомендовано несколько операций, строка относится к самой крупной</p><div id="sCat"></div></div>
@@ -953,6 +977,16 @@ function renderSales(){
   $("#sNote").textContent=`Источник: рекомендации операций в AsiaKoz Analytics (дата консультации). Сейчас данные есть по филиалам: ${brs||"—"}. «Согласились» — записан на операцию, операция сделана или пациент дал согласие.`;
 }
 
+
+function salesHead(){const br=salesBranch(),opt=$("#doctor").selectedOptions[0];const scope=S.doctor&&opt?opt.textContent:"Все филиалы";
+  const d=x=>x?x.slice(8,10)+"."+x.slice(5,7)+"."+x.slice(0,4):"—";
+  $("#sHead").innerHTML=`<div><b>Азиякөз · продажи после консультации</b><span class="dim" style="font-size:12px">${esc(scope)}${br&&S.doctor.startsWith("g:")?" (филиал "+esc(BR_RU[br]||br)+")":""}</span></div><div class="m">Период: ${d(S.from)} – ${d(S.to)}<br>Сформировано ${new Date().toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</div>`;
+  return {scope,from:d(S.from),to:d(S.to)}}
+window.addEventListener("beforeprint",()=>{if(S.view==="sales"&&SALES.data)salesHead()});
+$("#salesPdf").addEventListener("click",()=>{if(!SALES.data)return;const h=salesHead(),t=document.title;
+  document.title=`Азиякөз — продажи ${h.from}–${h.to}${S.doctor?" — "+h.scope:""}`;
+  window.addEventListener("afterprint",()=>{document.title=t},{once:true});window.print()});
+
 // ---------- план (текст в базе, доступ только с разделом «Маркетинг») ----------
 const PLAN={loaded:false};
 async function loadPlan(){
@@ -1000,7 +1034,7 @@ $("#askQ").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrl
 $("#askHints").addEventListener("click",e=>{const b=e.target.closest("button");if(b)ask(b.textContent)});
 
 function show(v){if(!TITLES[v])v="overview";S.view=v;
-  document.body.classList.toggle("v-plan",v==="plan");document.body.classList.toggle("v-sales",v==="sales");
+  document.body.classList.toggle("v-plan",v==="plan");document.body.classList.toggle("v-sales",v==="sales");$("#salesPdf").hidden=v!=="sales";
   if(v==="plan"&&S.loaded)loadPlan();if(v==="sales"&&S.loaded)loadSales();
   document.querySelectorAll("[data-view]").forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll(".nav a").forEach(a=>a.dataset.v===v?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
