@@ -324,6 +324,9 @@ a.th:hover{transform:scale(1.06);box-shadow:var(--shadow)}
 .rt th,.rt td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 .rt th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .rt th:first-child,.rt td:first-child{text-align:left;white-space:normal}.rt tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+.rt .ck{display:inline-flex;align-items:center;gap:9px;cursor:pointer}.rt .ck input{width:16px;height:16px;accent-color:var(--accent);margin:0;cursor:pointer}
+.rt tr.off td{color:var(--muted);opacity:.5}.rt tr.off td:first-child{opacity:1}.rt tr.off .pct{color:inherit}
+.sfilt{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:9px 14px;border-radius:10px;background:var(--accent-soft);font-size:13px}.sfilt button{border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:0;font:inherit}
 /* План (текст хранится в базе, классы с префиксом p-) и Продажи */
 body.v-plan #presets,body.v-plan .dates,body.v-plan #doctor,body.v-plan #refresh{display:none}
 body.v-sales #presets button[data-p="today"],body.v-sales #presets button[data-p="yesterday"]{display:none}
@@ -501,9 +504,10 @@ body.v-sales #presets button[data-p="today"],body.v-sales #presets button[data-p
 
       <section data-view="sales" hidden>
         <div class="phead" id="sHead"></div>
+        <div class="sfilt" id="sFilt" hidden></div>
         <div class="kpis" id="sKpis"></div>
         <div class="card"><h2>Где пациенты сейчас</h2><p class="sub">Все, кто был у менеджера по продажам после консультации врача, по текущему статусу рекомендации</p><div id="sStatus"></div></div>
-        <div class="card"><h2>По диагнозам</h2><p class="sub">Направление операции, которую рекомендовал врач. Если рекомендовано несколько операций, строка относится к самой крупной</p><div id="sCat"></div></div>
+        <div class="card"><h2>По диагнозам</h2><p class="sub">Направление операции, которую рекомендовал врач. Если рекомендовано несколько операций, строка относится к самой крупной. Снимите галочку, чтобы убрать диагноз из всех цифр на странице</p><div id="sCat"></div></div>
         <div class="grid2">
           <div class="card"><h2>По врачам</h2><p class="sub">Кто рекомендовал операцию</p><div id="sDoc"></div></div>
           <div class="card"><h2>По менеджерам</h2><p class="sub">Кто вёл пациента после консультации</p><div id="sMgr"></div></div>
@@ -930,7 +934,8 @@ function renderReport(){
   sel.addEventListener("change",()=>loadReport(sel.value));$("#repPrint").addEventListener("click",()=>window.print())})();
 
 // ---------- продажи: рекомендации врача → решение пациента ----------
-const SALES={key:"",data:null,busy:false};
+const SALES={key:"",data:null,busy:false,off:new Set((()=>{try{return JSON.parse(localStorage.getItem("salesOffCat")||"[]")}catch(e){return[]}})())};
+function salesSaveOff(){localStorage.setItem("salesOffCat",JSON.stringify([...SALES.off]))}
 const ST_RU={new_recommendation:"Новая, ещё не связывались",contacted:"Связались",thinking:"Думает",follow_up:"Перезвонить",postponed:"Отложил",scheduled:"Записан на операцию",completed:"Операция сделана",lost:"Отказ"};
 const ST_ORDER=["new_recommendation","contacted","thinking","follow_up","postponed","scheduled","completed","lost"];
 const BR_RU={ALA:"Алматы",SCO:"Ақтау",CIT:"Шымкент"};
@@ -947,12 +952,16 @@ async function loadSales(force){
 function salesAgg(R,by){const m=new Map();for(const r of R){const k=by(r);const a=m.get(k)||{k,n:0,ag:0,done:0,lost:0,wait:0,amt:0,agAmt:0};
   const n=Number(r.n),amt=Number(r.amt);a.n+=n;a.amt+=amt;if(r.agreed){a.ag+=n;a.agAmt+=amt}if(r.st==="completed")a.done+=n;if(r.st==="lost")a.lost+=n;if(r.st==="new_recommendation")a.wait+=n;m.set(k,a)}
   return[...m.values()].sort((a,b)=>b.n-a.n)}
-function salesTable(first,A,withAmt=true){if(!A.length)return `<div class="empty">Нет данных за период</div>`;
-  const T=A.reduce((t,a)=>{for(const k of["n","ag","done","lost","wait","amt","agAmt"])t[k]+=a[k];return t},{k:"Итого",n:0,ag:0,done:0,lost:0,wait:0,amt:0,agAmt:0});
-  const row=(a,cls)=>`<tr${cls?' class="tot"':""}><td>${esc(a.k)}</td><td>${fmt(a.n)}</td><td>${fmt(a.ag)}</td><td>${pctH(a.ag,a.n)}</td><td>${fmt(a.done)}</td><td>${fmt(a.lost)}</td><td>${fmt(a.wait)}</td>${withAmt?`<td>${mln(a.amt)}</td><td>${mln(a.agAmt)}</td>`:""}</tr>`;
-  return `<div class="rt-w"><table class="rt"><thead><tr><th>${first}</th><th>Пациентов</th><th>Согласились</th><th>Конверсия</th><th>Сделано</th><th>Отказ</th><th>Не звонили</th>${withAmt?"<th>Рекомендовано</th><th>Согласовано</th>":""}</tr></thead><tbody>${A.map(a=>row(a)).join("")}${A.length>1?row(T,1):""}</tbody></table></div>`}
+function salesTable(first,A,withAmt=true,off=null){if(!A.length)return `<div class="empty">Нет данных за период</div>`;
+  const on=off?A.filter(a=>!off.has(a.k)):A;
+  const T=on.reduce((t,a)=>{for(const k of["n","ag","done","lost","wait","amt","agAmt"])t[k]+=a[k];return t},{k:off&&on.length<A.length?`Итого по выбранным (${on.length} из ${A.length})`:"Итого",n:0,ag:0,done:0,lost:0,wait:0,amt:0,agAmt:0});
+  const name=(a,cls)=>off&&!cls?`<label class="ck"><input type="checkbox" data-cat="${esc(a.k)}"${off.has(a.k)?"":" checked"}>${esc(a.k)}</label>`:esc(a.k);
+  const row=(a,cls)=>`<tr${cls?' class="tot"':off&&off.has(a.k)?' class="off"':""}><td>${name(a,cls)}</td><td>${fmt(a.n)}</td><td>${fmt(a.ag)}</td><td>${pctH(a.ag,a.n)}</td><td>${fmt(a.done)}</td><td>${fmt(a.lost)}</td><td>${fmt(a.wait)}</td>${withAmt?`<td>${mln(a.amt)}</td><td>${mln(a.agAmt)}</td>`:""}</tr>`;
+  return `<div class="rt-w"><table class="rt"><thead><tr><th>${off?`<label class="ck"><input type="checkbox" data-cat="*"${on.length===A.length?" checked":""}>${first}</label>`:first}</th><th>Пациентов</th><th>Согласились</th><th>Конверсия</th><th>Сделано</th><th>Отказ</th><th>Не звонили</th>${withAmt?"<th>Рекомендовано</th><th>Согласовано</th>":""}</tr></thead><tbody>${A.map(a=>row(a)).join("")}${A.length>1&&on.length?row(T,1):""}</tbody></table></div>`}
 function renderSales(){
-  const D=SALES.data;if(!D)return;const br=salesBranch();const R=(D.rows||[]).filter(r=>!br||r.br===br);
+  const D=SALES.data;if(!D)return;const br=salesBranch();const R0=(D.rows||[]).filter(r=>!br||r.br===br);
+  const cats=salesAgg(R0,r=>r.cat),off=SALES.off,R=R0.filter(r=>!off.has(r.cat)),nOff=cats.filter(a=>off.has(a.k)).length;
+  const F=$("#sFilt");F.hidden=!nOff;F.innerHTML=nOff?`<span>Цифры только по выбранным диагнозам: <b>${cats.length-nOff} из ${cats.length}</b>. Убраны: ${cats.filter(a=>off.has(a.k)).map(a=>esc(a.k)).join(", ")}</span><button type="button" class="noprint" id="sFiltReset">Показать все</button>`:"";
   const tot=salesAgg(R,()=>"all")[0]||{n:0,ag:0,done:0,lost:0,wait:0,amt:0,agAmt:0};
   const k=(l,v,s,cls="")=>`<div class="kpi ${cls}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
   $("#sKpis").innerHTML=
@@ -966,12 +975,13 @@ function renderSales(){
   $("#sStatus").innerHTML=R.length?ST_ORDER.filter(s=>bySt.has(s)).map(s=>{const a=bySt.get(s);
     return `<div class="sbar" style="padding:7px 0"><span style="width:210px;flex:none">${ST_RU[s]||esc(s)}</span><span class="track"><i style="width:${a.n/mx*100}%;${s==="lost"?"background:var(--bad)":s==="new_recommendation"?"background:var(--warn)":s==="completed"||s==="scheduled"?"background:var(--good)":""}"></i></span><b style="width:52px;text-align:right">${fmt(a.n)}</b><span class="dim" style="width:96px;text-align:right">${mln(a.amt)}</span></div>`}).join("")
     :`<div class="empty"><b>За этот период консультаций нет</b>Данные о рекомендациях есть с ${esc((D.range||{}).min||"—")} по ${esc((D.range||{}).max||"—")}.</div>`;
-  $("#sCat").innerHTML=salesTable("Диагноз / операция",salesAgg(R,r=>r.cat));
+  $("#sCat").innerHTML=salesTable("Диагноз / операция",cats,true,off);
   $("#sDoc").innerHTML=salesTable("Врач",salesAgg(R,r=>r.doc),false);
   $("#sMgr").innerHTML=salesTable("Менеджер",salesAgg(R,r=>r.mgr),false);
   const W=salesAgg(R,r=>r.wk).sort((a,b)=>a.k<b.k?-1:1).map(a=>({...a,k:a.k?a.k.slice(8,10)+"."+a.k.slice(5,7):"—"}));
   $("#sWeek").innerHTML=salesTable("Неделя с",W,false);
-  const Y=(D.reasons||[]).filter(r=>!br||r.br===br).slice(0,12);
+  const ym=new Map();for(const r of D.reasons||[]){if(br&&r.br!==br)continue;if(r.cat!=null&&off.has(r.cat))continue;ym.set(r.reason,(ym.get(r.reason)||0)+Number(r.n))}
+  const Y=[...ym].map(([reason,n])=>({reason,n})).sort((a,b)=>b.n-a.n).slice(0,12);
   $("#sWhy").innerHTML=Y.length?Y.map(r=>`<div class="li"><div class="grow">${esc(r.reason)}</div><b>${fmt(r.n)}</b></div>`).join(""):`<div class="empty">Причины не записаны</div>`;
   const brs=[...new Set((D.rows||[]).map(r=>r.br))].map(b=>BR_RU[b]||b).join(", ");
   $("#sNote").textContent=`Источник: рекомендации операций в AsiaKoz Analytics (дата консультации). Сейчас данные есть по филиалам: ${brs||"—"}. «Согласились» — записан на операцию, операция сделана или пациент дал согласие.`;
@@ -983,6 +993,10 @@ function salesHead(){const br=salesBranch(),opt=$("#doctor").selectedOptions[0];
   $("#sHead").innerHTML=`<div><b>Азиякөз · продажи после консультации</b><span class="dim" style="font-size:12px">${esc(scope)}${br&&S.doctor.startsWith("g:")?" (филиал "+esc(BR_RU[br]||br)+")":""}</span></div><div class="m">Период: ${d(S.from)} – ${d(S.to)}<br>Сформировано ${new Date().toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</div>`;
   return {scope,from:d(S.from),to:d(S.to)}}
 window.addEventListener("beforeprint",()=>{if(S.view==="sales"&&SALES.data)salesHead()});
+$("#sCat").addEventListener("change",e=>{const i=e.target.closest("input[data-cat]");if(!i)return;const c=i.dataset.cat;
+  if(c==="*"){if(i.checked)SALES.off.clear();else $("#sCat").querySelectorAll("input[data-cat]").forEach(x=>{if(x.dataset.cat!=="*")SALES.off.add(x.dataset.cat)})}
+  else if(i.checked)SALES.off.delete(c);else SALES.off.add(c);salesSaveOff();renderSales()});
+$("#sFilt").addEventListener("click",e=>{if(e.target.closest("#sFiltReset")){SALES.off.clear();salesSaveOff();renderSales()}});
 $("#salesPdf").addEventListener("click",()=>{if(!SALES.data)return;const h=salesHead(),t=document.title;
   document.title=`Азиякөз — продажи ${h.from}–${h.to}${S.doctor?" — "+h.scope:""}`;
   window.addEventListener("afterprint",()=>{document.title=t},{once:true});window.print()});
