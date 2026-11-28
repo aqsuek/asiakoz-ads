@@ -289,6 +289,14 @@ td{padding:13px 10px}
 @media (max-width:520px){.kpi .v{font-size:23px}}
 </style>
 <style>
+#ads tr.grp{cursor:pointer}
+#ads tr.grp td{background:var(--chip);font-weight:600}
+#ads tr.grp.s td{background:transparent;border-top:1px solid var(--line)}
+#ads tr.grp.s td:first-child{padding-left:30px}
+#ads tr.adrow td:first-child{padding-left:56px}
+#ads tr.grp:focus-visible{outline:2px solid var(--good);outline-offset:-2px}
+.gname{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.gname .car{font-style:normal;width:14px;flex:none;color:var(--muted)}
 .adcell{display:flex;gap:12px;align-items:flex-start;min-width:0}
 .adcell>div{min-width:0}
 .th{position:relative;display:block;flex:none;width:40px;height:40px;border-radius:9px;overflow:hidden;background:var(--sunk)}
@@ -782,20 +790,36 @@ function thumb(code,big){const t=(S.thumbs||{})[code];if(!t||!t.t)return `<span 
   return t.p?`<a class="th ${big?"big":""}" ${d} href="${esc(t.p)}" target="_blank" rel="noopener" aria-label="${t.v?"Смотреть видео в Meta":"Открыть объявление в Meta"}">${img}</a>`:`<span class="th ${big?"big":""}" ${d}>${img}</span>`}
 function renderAds(R){
   const q=S.q.trim().toLowerCase();
-  let A=R.filter(r=>r.spendK>0||r.leads>0);
+  let A=R.filter(r=>r.spendK>0||r.leads>0||isActive(r.code));
   if(q)A=A.filter(r=>[r.name,r.code,r.adset_name,r.campaign_name].join(" ").toLowerCase().includes(q));
   if(S.vf)A=A.filter(r=>r.verdict[0]===S.vf);
   if(S.sf)A=A.filter(r=>S.sf==="on"?isActive(r.code):!isActive(r.code));
   const{k:sk,dir}=S.sort;
-  A.sort((a,b)=>{const x=a[sk],y=b[sk];if(x==null)return 1;if(y==null)return -1;return(typeof x==="string"?x.localeCompare(y):x-y)*dir});
+  const cmp=(a,b)=>{const x=a[sk],y=b[sk];if(x==null)return 1;if(y==null)return -1;return(typeof x==="string"?x.localeCompare(y):x-y)*dir};
   document.querySelectorAll("#ads th").forEach(th=>th.dataset.k===sk?th.setAttribute("aria-sort",dir>0?"ascending":"descending"):th.removeAttribute("aria-sort"));
-  $("#ads tbody").innerHTML=A.length?A.map(r=>`<tr>
-    <td><div class="adcell">${thumb(r.code,true)}<div><div class="ad">${esc(r.name)}</div><div class="meta"><span class="code">${esc(r.code)}</span> ${stBadge(statusOf(r.code))} ${esc(r.adset_name||"")} · ${esc(r.campaign_name||"")}</div></div></div></td>
-    <td data-l="Расход">${money(r.spendK)}</td><td data-l="Переписки">${fmt(r.conversations)}</td><td data-l="Цена переписки">${r.cpc==null?'<span class="dim">—</span>':money(r.cpc)}</td>
-    <td data-l="С кодом">${fmt(r.leads)}</td><td data-l="Записались"><b>${fmt(r.booked)}</b></td><td data-l="Цена записи">${r.cpb==null?'<span class="dim">—</span>':money(r.cpb)}</td>
-    <td class="full"><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span>${r.fat?` <span class="chip fix" title="Цена переписки за последние 7 дней против предыдущих 7">Креатив устал +${r.fat}%</span>`:""}<span class="why">${esc(r.why)}${r.fat?". Переписка за неделю подорожала на "+r.fat+"% — пора обновить креатив":""}</span></td></tr>`).join("")
-    :`<tr><td colspan="8"><div class="empty"><b>Ничего не найдено</b>Измените период, врача или поиск.</div></td></tr>`;
-  $("#adsNote").textContent=`Решение считается от целевой цены записи ${money(S.target)}, её можно изменить в «Настройке». Показаны объявления с расходом или чатами за период.`;
+  // дерево: кампания → группа объявлений → объявления; итог по каждой ветке
+  const agg=(name,L)=>{const spendK=sum(L,"spendK"),conversations=sum(L,"conversations"),leads=sum(L,"leads"),booked=sum(L,"booked");
+    return{name,spendK,conversations,leads,booked,cpc:conversations?spendK/conversations:null,cpb:booked?spendK/booked:null,on:L.filter(r=>isActive(r.code)).length,n:L.length}};
+  const by=(L,k)=>{const m=new Map();for(const r of L){const key=r[k]||"Без названия";if(!m.has(key))m.set(key,[]);m.get(key).push(r)}return[...m.entries()]};
+  if(!S.open)S.open=new Set();
+  const isOpen=key=>!!q||S.open.has(key);
+  const nums=g=>`<td data-l="Расход">${money(g.spendK)}</td><td data-l="Переписки">${fmt(g.conversations)}</td><td data-l="Цена переписки">${g.cpc==null?'<span class="dim">—</span>':money(g.cpc)}</td>
+    <td data-l="С кодом">${fmt(g.leads)}</td><td data-l="Записались"><b>${fmt(g.booked)}</b></td><td data-l="Цена записи">${g.cpb==null?'<span class="dim">—</span>':money(g.cpb)}</td>`;
+  const grp=(cls,key,g,sub)=>`<tr class="grp ${cls}" data-key="${esc(key)}" tabindex="0" role="button" aria-expanded="${isOpen(key)}">
+    <td><div class="gname"><i class="car">${isOpen(key)?"▾":"▸"}</i><div><div class="ad">${esc(g.name)}</div><div class="meta">${g.on?`<span class="st on">Активно: ${g.on}</span>`:`<span class="st">Выключено</span>`} ${sub}</div></div></div></td>${nums(g)}<td class="full"></td></tr>`;
+  const adRow=r=>`<tr class="adrow">
+    <td><div class="adcell">${thumb(r.code,true)}<div><div class="ad">${esc(r.name)}</div><div class="meta"><span class="code">${esc(r.code)}</span> ${stBadge(statusOf(r.code))}</div></div></div></td>${nums(r)}
+    <td class="full"><span class="chip ${r.verdict[0]}">${r.verdict[1]}</span>${r.fat?` <span class="chip fix" title="Цена переписки за последние 7 дней против предыдущих 7">Креатив устал +${r.fat}%</span>`:""}<span class="why">${esc(r.why)}${r.fat?". Переписка за неделю подорожала на "+r.fat+"% — пора обновить креатив":""}</span></td></tr>`;
+  let h="";
+  const camps=by(A,"campaign_name").map(([n,L])=>({g:agg(n,L),L})).sort((a,b)=>cmp(a.g,b.g));
+  for(const c of camps){const ck="c|"+c.g.name;const sets=by(c.L,"adset_name").map(([n,L])=>({g:agg(n,L),L})).sort((a,b)=>cmp(a.g,b.g));
+    h+=grp("c",ck,c.g,`${sets.length} ${plural(sets.length,"группа","группы","групп")} · ${c.g.n} ${plural(c.g.n,"объявление","объявления","объявлений")}`);
+    if(!isOpen(ck))continue;
+    for(const s of sets){const sk2="s|"+c.g.name+"|"+s.g.name;
+      h+=grp("s",sk2,s.g,`${s.g.n} ${plural(s.g.n,"объявление","объявления","объявлений")}`);
+      if(isOpen(sk2))h+=[...s.L].sort(cmp).map(adRow).join("")}}
+  $("#ads tbody").innerHTML=h||`<tr><td colspan="8"><div class="empty"><b>Ничего не найдено</b>Измените период, врача или поиск.</div></td></tr>`;
+  $("#adsNote").textContent=`Нажмите на кампанию, чтобы раскрыть её группы, и на группу, чтобы увидеть объявления. Решение считается от целевой цены записи ${money(S.target)}. Показаны объявления с расходом, чатами или активные сейчас.`;
 }
 
 function renderChats(){
@@ -1073,6 +1097,9 @@ $("#sortSel").addEventListener("change",e=>{S.sort={k:e.target.value,dir:-1};ren
 $("#q").addEventListener("input",e=>{S.q=e.target.value;renderAds(rows())});
 document.querySelectorAll("#vfilter button").forEach(b=>b.addEventListener("click",()=>{S.vf=b.dataset.f;document.querySelectorAll("#vfilter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderAds(rows())}));
 document.querySelectorAll("#sfilter button").forEach(b=>b.addEventListener("click",()=>{S.sf=b.dataset.f;document.querySelectorAll("#sfilter button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderAds(rows())}));
+const toggleGrp=tr=>{if(!S.open)S.open=new Set();const k=tr.dataset.key;S.open.has(k)?S.open.delete(k):S.open.add(k);renderAds(rows())};
+$("#ads tbody").addEventListener("click",e=>{if(e.target.closest("a"))return;const tr=e.target.closest("tr.grp");if(tr)toggleGrp(tr)});
+$("#ads tbody").addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const tr=e.target.closest("tr.grp");if(tr){e.preventDefault();toggleGrp(tr)}});
 document.querySelectorAll("#ads th").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.k;S.sort={k,dir:S.sort.k===k?-S.sort.dir:(k==="name"?1:-1)};renderAds(rows())}));
 $("#cur").addEventListener("change",e=>{S.cur=e.target.value;store.set("cur2",S.cur);render()});
 $("#rate").addEventListener("change",e=>{S.rate=Number(e.target.value)||1;store.set("rate",S.rate);render()});
